@@ -5,7 +5,7 @@ import json
 
 from requests.exceptions import HTTPError
 
-
+# Should get this from external files
 APP_LIST_API = 'http://api.steampowered.com/ISteamApps/GetAppList/v0001/'
 
 
@@ -47,38 +47,37 @@ class Resource:
         else:
             self.json = response.json()
 
+
+class SteamApp:
+    # Static(-ish) variable. Only one resource location should ever be needed.
+    apps = APP_LIST_API
+
+    def __init__(self, title=None, appID=None):
+        self.title = title
+        self.appID = appID
+
     def fetch_text(self):
         """
-        Returns a text representation of json. So that the search can be 
-        performed via json loads. Should not be used for anything else but 
-        app list.
+        Returns a text representation of JSON. So that the search can be 
+        performed via json.loads(). Should not be used for anything else but 
+        app list - there's no need to use it elswhere, really.
         """
 
-        if not self.dest:
-            self.get_destination()
-
         try:
-            response = requests.get(self.dest)
+            response = requests.get(SteamApp.apps)
             response.raise_for_status()
         except HTTPError:
             raise HTTPError("Resource not found")
         else:
             return response.text
 
-
-class SteamApp:
-    def __init__(self, title=None, appID=None):
-        self.title = title
-        self.id = appID
-
-    def get_app_dict(self, json_text, target_app):
+    def get_app_dict(self, json_text):
         """ 
         Extracts dict in which app resides from JSON response by loading textual
         representation of JSON and applying private inner function to it over and 
         over again. 
 
         :params json_text: textual representation of JSON object.
-        :params target_app: string representation of target steam app.
         """
 
         app_dict = []
@@ -88,8 +87,10 @@ class SteamApp:
             Search for key with "name" value that equals target application name. If
             found, it means the dictionary is the one we are interested in.
             """
+
             try:
-                if dictionary["name"] == target_app:
+                if dictionary["name"] == self.title:
+                    # Can't do "d=None <..> d = dictionary": None is returned?..
                     app_dict.append(dictionary)
             except KeyError:
                 pass
@@ -99,8 +100,11 @@ class SteamApp:
 
         return app_dict[0] if app_dict else None
 
+    def assign_id(self):
+        """ Extracts app's ID from the dictionary (see get_app_dict()). """
 
+        text = self.fetch_text()
+        app_info = self.get_app_dict(text)
 
-
-
+        self.appID = app_info['appid'] if app_info else None
 
