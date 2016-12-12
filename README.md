@@ -9,10 +9,10 @@ can be enabled or disabled by passing different parameters when calling the
 steamCLI.
 
 **Default:**
-1. Getting game's price (current), average user rating, release date.
-2. Getting information about the lowest recorded price of a particular game/app.
-3. Getting information about where to find the best deal for an app.
+ - Getting game's price (current), average user rating, release date.
+ - Getting information about the lowest recorded price of a particular game/app.
+ - Getting information about where to find the best deal for an app.
 
 **Optional:**
-4. Getting the game's description.
-5. Showing whether the game has co-op, multi-player, controller support.
+ - Getting the game's description.
+ - Showing whether the game has co-op, multi-player, controller support.
