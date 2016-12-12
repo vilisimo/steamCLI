@@ -8,19 +8,19 @@ root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, root)
 
 from requests.exceptions import HTTPError
-from steamCLI.consumer import (
+from steamCLI.consumers import (
     Resource,
     SteamApp,
 )
 
 
-# Test URL
+# Test URL & mock result
 URL = 'http://api.example.com/test/'
 STEAM_MOCK = '{"applist": {"apps": {"app": [{"appid": 5,"name": "Dedicated Server"}]}}}'
 
 
-def mocked_requests_get(*args):
-    """ Function that mocks r """
+def mocked_get(*args):
+    """ Function that mocks requests.get() """
     class MockedResponse:
         def __init__(self, json_data, status_code):
             self.json_data = json_data
@@ -68,7 +68,7 @@ class TestResource(unittest.TestCase):
 
         self.assertEqual(self.resource.root, self.resource.dest)
 
-    @mock.patch('steamCLI.consumer.requests.get', side_effect=mocked_requests_get)
+    @mock.patch('steamCLI.consumers.requests.get', side_effect=mocked_get)
     def test_fetch_json_no_resource(self, mock_get):
         """ Ensures exception is raised if an destination is not correct. """
 
@@ -76,7 +76,9 @@ class TestResource(unittest.TestCase):
             resource = Resource(URL + 'test')
             resource.fetch_json()
 
-    @mock.patch('steamCLI.consumer.requests.get', side_effect=mocked_requests_get)
+        self.assertIn(mock.call(URL + 'test'), mock_get.call_args_list)
+
+    @mock.patch('steamCLI.consumers.requests.get', side_effect=mocked_get)
     def test_fetch_json_resource_exists(self, mock_get):
         """ Ensures correct json is returned when a resource can be accessed """
 
@@ -84,6 +86,7 @@ class TestResource(unittest.TestCase):
         resource.fetch_json()
         
         self.assertEqual(STEAM_MOCK, resource.json)
+        self.assertIn(mock.call(URL), mock_get.call_args_list)
 
 
 class TestSteamApp(unittest.TestCase):
@@ -91,7 +94,7 @@ class TestSteamApp(unittest.TestCase):
         SteamApp.apps = URL
         self.steamapp = SteamApp(title="Dedicated Server")
 
-    @mock.patch('steamCLI.consumer.requests.get', side_effect=mocked_requests_get)
+    @mock.patch('steamCLI.consumers.requests.get', side_effect=mocked_get)
     def test_get_app_dict(self, mock_get):
         """ Ensures get_app_dict() manages to find relevant dictionaries """
 
@@ -100,8 +103,9 @@ class TestSteamApp(unittest.TestCase):
         result = self.steamapp.get_app_dict(text)
 
         self.assertEqual(expected, result)
+        self.assertIn(mock.call(URL), mock_get.call_args_list)
 
-    @mock.patch('steamCLI.consumer.requests.get', side_effect=mocked_requests_get)
+    @mock.patch('steamCLI.consumers.requests.get', side_effect=mocked_get)
     def test_get_app_dict_no_such_app(self, mock_get):
         """ Ensures that when nothing is found, None is returned. """
 
@@ -110,36 +114,41 @@ class TestSteamApp(unittest.TestCase):
         result = self.steamapp.get_app_dict(text)
 
         self.assertFalse(result)
+        self.assertIn(mock.call(URL), mock_get.call_args_list)
 
-    @mock.patch('steamCLI.consumer.requests.get', side_effect=mocked_requests_get)
+    @mock.patch('steamCLI.consumers.requests.get', side_effect=mocked_get)
     def test_fetch_text_no_resource(self, mock_get):
         """ Ensures exception is raised if an destination is not correct. """
 
         with self.assertRaises(HTTPError):
             SteamApp.apps += 'test'
             self.steamapp.fetch_text()
+        self.assertIn(mock.call(URL + 'test'), mock_get.call_args_list)
 
-    @mock.patch('steamCLI.consumer.requests.get', side_effect=mocked_requests_get)
+    @mock.patch('steamCLI.consumers.requests.get', side_effect=mocked_get)
     def test_fetch_text(self, mock_get):
         """ Ensures a text representation of json is returned. """
         
         text_json = self.steamapp.fetch_text()
 
         self.assertEqual(STEAM_MOCK, text_json)
+        self.assertIn(mock.call(URL), mock_get.call_args_list)
 
-    @mock.patch('steamCLI.consumer.requests.get', side_effect=mocked_requests_get)
+    @mock.patch('steamCLI.consumers.requests.get', side_effect=mocked_get)
     @mock.patch.object(SteamApp, 'get_app_dict')
     def test_assign_id(self, mock_dict, mock_get):
         mock_dict.return_value = {"appid": 5, "name": "Dedicated Server"}
         self.steamapp.assign_id()
 
         self.assertEqual(self.steamapp.appID, 5)
+        self.assertIn(mock.call(URL), mock_get.call_args_list)
 
-    @mock.patch('steamCLI.consumer.requests.get', side_effect=mocked_requests_get)
+    @mock.patch('steamCLI.consumers.requests.get', side_effect=mocked_get)
     @mock.patch.object(SteamApp, 'get_app_dict')
     def test_assign_id_no_dict_returned(self, mock_dict, mock_get):
         mock_dict.return_value = None
         self.steamapp.assign_id()
 
         self.assertFalse(self.steamapp.appID)
+        self.assertIn(mock.call(URL), mock_get.call_args_list)
 

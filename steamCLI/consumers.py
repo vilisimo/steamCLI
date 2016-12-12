@@ -1,22 +1,29 @@
-""" Responsible for consuming various Steam APIs """
+""" Responsible for consuming various Steam-related APIs """
 
+import configparser
 import requests
 import json
+import os
 
 from requests.exceptions import HTTPError
 
-# Should get this from external files
-APP_LIST_API = 'http://api.steampowered.com/ISteamApps/GetAppList/v0001/'
+# Read in relevant resource links.
+current_dir = os.path.dirname(os.path.abspath(__file__))
+config_file = os.path.join(current_dir, 'resources.ini')
+config = configparser.ConfigParser()
+config.read(config_file)
+APP_LIST = config['SteamAPIs']['applist']
 
 
 class Resource:
-    def __init__(self, root=APP_LIST_API):
+    def __init__(self, root=APP_LIST):
         """
         :params root: API root address.
         """
 
         self.root = root
         self.dest = None
+        self.json = None
 
     def __str__(self):
         return self.root if not self.dest else self.dest
@@ -50,17 +57,17 @@ class Resource:
 
 class SteamApp:
     # Static(-ish) variable. Only one resource location should ever be needed.
-    apps = APP_LIST_API
+    apps = APP_LIST
 
-    def __init__(self, title=None, appID=None):
+    def __init__(self, title=None, app_id=None):
         self.title = title
-        self.appID = appID
+        self.appID = app_id
 
     def fetch_text(self):
         """
         Returns a text representation of JSON. So that the search can be 
         performed via json.loads(). Should not be used for anything else but 
-        app list - there's no need to use it elswhere, really.
+        app list - there's no need to use it elsewhere, really.
         """
 
         try:
@@ -74,8 +81,8 @@ class SteamApp:
     def get_app_dict(self, json_text):
         """ 
         Extracts dict in which app resides from JSON response by loading textual
-        representation of JSON and applying private inner function to it over and 
-        over again. 
+        representation of JSON and applying private inner function to it over
+        and over again.
 
         :params json_text: textual representation of JSON object.
         """
@@ -84,8 +91,8 @@ class SteamApp:
 
         def _decode_dictionary(dictionary):
             """
-            Search for key with "name" value that equals target application name. If
-            found, it means the dictionary is the one we are interested in.
+            Search for key with "name" value that == target application name.
+            If found, it means the dictionary is the one we are interested in.
             """
 
             try:
