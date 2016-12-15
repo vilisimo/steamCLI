@@ -40,7 +40,3 @@ class ConfigTests(unittest.TestCase):
             config.get_value('SteamAPIs', 'applist'),
             'http://api.steampowered.com/ISteamApps/GetAppList/v0001/'
         )
-
-
-if __name__ == '__main__':
-    unittest.main()

@@ -3,7 +3,11 @@ import os
 
 
 class Config:
-    """ Responsible for actions on .ini files in which settings are stored. """
+    """
+    Responsible for actions on .ini files in which settings are stored.
+
+    If only get_value() is ever used, class might be an overkill.
+    """
 
     def __init__(self, path=None):
         """
