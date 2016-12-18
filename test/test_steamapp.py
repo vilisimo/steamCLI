@@ -48,8 +48,17 @@ class SteamAppTests(unittest.TestCase):
         self.assertFalse(result)
 
     def test_get_app_dict(self):
-        """ Ensures get_app_dict() manages to find relevant dictionaries """
+        """ Ensures _get_app_dict() manages to find relevant dictionaries """
 
+        expected = {"appid": 8, "name": "winui2"}
+        result = self.app._get_app_dict(RESOURCE)
+
+        self.assertEqual(expected, result)
+
+    def test_get_app_dict_case_insensitive(self):
+        """ Ensure that _get_app_dict() is not case sensitive. """
+
+        self.app.title = "WInuI2"
         expected = {"appid": 8, "name": "winui2"}
         result = self.app._get_app_dict(RESOURCE)
 

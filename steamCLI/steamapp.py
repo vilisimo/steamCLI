@@ -52,7 +52,7 @@ class SteamApp:
             """
 
             try:
-                if dictionary["name"] == self.title:
+                if dictionary["name"].lower() == self.title.lower():
                     # Can't do "d=None <..> d = dictionary": None is returned?..
                     app_dict.append(dictionary)
             except KeyError:
