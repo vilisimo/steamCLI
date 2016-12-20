@@ -12,7 +12,8 @@ class Config:
 
     def __init__(self, root=ROOT, *args):
         """
-        :param path: where the file containing various settings can be found.
+        :param root: project root folder.
+        :param *args: folders + file name needed to navigate to the .ini file.
         """
 
         self.config = configparser.ConfigParser()
