@@ -1,6 +1,7 @@
 import configparser
 import os
 
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class Config:
     """
@@ -9,16 +10,16 @@ class Config:
     If only get_value() is ever used, class might be an overkill.
     """
 
-    def __init__(self, path=None):
+    def __init__(self, root=ROOT, *args):
         """
         :param path: where the file containing various settings can be found.
         """
 
         self.config = configparser.ConfigParser()
+        self.path = os.path.join(root, *args)
+
         # If there was no config file, config class would be useless.
-        if path and os.path.isfile(path):
-            self.path = path
-        else:
+        if not os.path.isfile(self.path):
             raise FileNotFoundError("File does not exist.")
 
     def get_value(self, section, key):
@@ -32,4 +33,3 @@ class Config:
         self.config.read(self.path)
 
         return self.config[section][key]
-
