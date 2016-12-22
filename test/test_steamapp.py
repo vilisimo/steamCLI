@@ -84,6 +84,23 @@ class SteamAppTests(unittest.TestCase):
 
         self.assertFalse(self.app.appid)
 
+    def test_assign_id_with_id(self):
+        """
+        Ensure that when appid is defined upon creation of an object, no further
+        processing is done, i.e. no other methods inside assign_id() are called.
+        """
+
+        app = SteamApp(appid=1)
+        with mock.patch.object(app, '_fetch_text') as m:
+            a = app.assign_id(self.url)
+
+        assert not m.called, "Method should not have been called: appid exists."
+
+        with mock.patch.object(app, '_get_app_dict') as m:
+            a = app.assign_id(self.url)
+
+        assert not m.called, "Method should not have been called: appid exists."
+
     # # In case there is a need to check it sometime later. Passes as of Dec 15.
     # def test_real_deal(self):
     #     """ Ensure everything works with a proper steam api. """

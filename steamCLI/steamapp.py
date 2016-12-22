@@ -9,10 +9,14 @@ class SteamApp:
 
     def assign_id(self, origin):
         """
-        Extracts app's ID from the dictionary (see get_app_dict()).
+        Assigns an app id to an app.
 
-        :param origin: url to resource - where a list of games is located.
+        :param origin: url to resource: where a list of games is located.
         """
+
+        # If app already has a defined ID, there is no need to search for it.
+        if self.appid:
+            return
 
         text = self._fetch_text(origin)
         app_info = self._get_app_dict(text)
