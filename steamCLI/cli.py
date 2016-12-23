@@ -1,4 +1,5 @@
 import argparse
+import pprint
 
 from string import capwords
 
@@ -30,6 +31,15 @@ def main():
         # From here function should be used, as both appid and title will use it
         print("{} id: {}".format(app.title,
                                  app.appid if app.appid else "Not Found"))
+        if app.appid:
+            json_data = app._fetch_json(
+                'http://store.steampowered.com/api/appdetails?appids={}'.format(app.appid))
+            pprint.pprint(json_data)
+
     elif args.appID:
-        print(args.appID)
+        app.appid = args.appID
+        print(app.appid)
+        # json = app._fetch_json(
+        #     'http://store.steampowered.com/api/appdetails?appids=11')
+        # pprint.pprint(json["11"]['success'])
 

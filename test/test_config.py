@@ -68,5 +68,5 @@ class ConfigTests(unittest.TestCase):
 
         self.assertEqual(
             config.get_value('SteamAPIs', 'applist'),
-            'http://api.steampowered.com/ISteamApps/GetAppList/v0001/'
+            'http://api.steampowered.com/ISteamApps/GetAppList/v0002/'
         )
