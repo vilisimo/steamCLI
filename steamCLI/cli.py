@@ -1,4 +1,3 @@
-import os
 import argparse
 
 from string import capwords
@@ -11,21 +10,26 @@ def main():
     config = Config('steamCLI', 'resources.ini')
     APP_LIST = config.get_value('SteamAPIs', 'applist')
 
-    parser = argparse.ArgumentParser(description="A CLI app to retrieve information about Steam apps.")
+    app_description = config.get_value('HelpText', 'app_help')
+    parser = argparse.ArgumentParser(description=app_description)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-t", "--title", action="store_true",
-                       help="title of a game or an app on Steam")
+                       help=config.get_value('HelpText', 'title_help'))
     group.add_argument("-id", "--appID", type=int, action="store", metavar="",
-                       help="id of a game or an app on Steam")
+                       help=config.get_value('HelpText', 'id_help'))
     parser.add_argument("-d", "--description", action="store_true",
-                        help="include to see the app description")
+                        help=config.get_value('HelpText', 'desc_help'))
     args = parser.parse_args()
+
+    app = SteamApp()
     if args.title:
         # Shell eats up special characters, such as ', &, etc. Hence, input().
         app_title = input("Enter title:\t")
-        app = SteamApp(title=app_title)
+        app.title = app_title  # Reassign later, so that capwords are not needed
         app.assign_id(origin=APP_LIST)
-        print("{} id: {}".format(capwords(app.title), 
+        # From here function should be used, as both appid and title will use it
+        print("{} id: {}".format(app.title,
                                  app.appid if app.appid else "Not Found"))
     elif args.appID:
-        pass
+        print(args.appID)
+
