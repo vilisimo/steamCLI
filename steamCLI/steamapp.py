@@ -23,6 +23,61 @@ class SteamApp:
 
         self.appid = app_info['appid'] if app_info else None
 
+    def _fetch_json(self, origin):
+        """
+        Extracts a JSON object from a given app link.
+
+        :param origin: link to a resource that is to be consumed.
+        """
+
+        response = requests.get(origin)
+        json_data = response.json()
+
+        # Steam informs us whether the game was found or not.
+        if not json_data[str(self.appid)]['success']:
+            raise requests.HTTPError("Resource not found")
+
+        return json_data
+
+    def _get_name(self, json_data):
+        """
+        Finds name in JSON data.
+
+        :param json_data: data about a steam app in a dict format.
+        :return: name of the app.
+        """
+
+        return json_data[str(self.appid)]['data']['name']
+
+    def _get_metacritic_score(self, json_data):
+        """
+        Finds metacritic score in JSON data.
+
+        :param json_data: data about a steam app in a dict format.
+        :return: metacritic score of the app.
+        """
+
+        return json_data[str(self.appid)]['data']['metacritic']['score']
+
+    def _get_description(self, json_data):
+        """
+        Finds description of an app in JSON data.
+
+        :param json_data: data about a steam app in a dict format.
+        :return: description of the app.
+        """
+
+        return json_data[str(self.appid)]['data']['detailed_description']
+
+    def _get_price_overview(self, json_data):
+        """
+        Finds information related to app price.
+
+        :return: a dictionary of relevant price data.
+        """
+
+        return json_data[str(self.appid)]['data']['price_overview']
+
     def _fetch_text(self, origin):
         """
         Gets the textual JSON representation from a given link.
