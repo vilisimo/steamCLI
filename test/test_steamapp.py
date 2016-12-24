@@ -133,7 +133,7 @@ class SteamAppAssignInfoTests(unittest.TestCase):
             'name': 'Test',
             'release_date': {'coming_soon': False, 'date': '1 Nov, 2000'},
             'metacritic': {'score': 1},
-            'detailed_description': 'Test description',
+            'short_description': 'Test description',
             'price_overview': {
                 'currency': 'GBP',
                 'discount_percent': 50,
@@ -211,7 +211,7 @@ class SteamAppAssignInfoTests(unittest.TestCase):
     def test_get_description(self):
         """ Ensures that description can be extracted. """
 
-        descr = self.response[str(self.id)]['data']['detailed_description']
+        descr = self.response[str(self.id)]['data']['short_description']
         actual_description = self.app._get_description(self.response)
 
         self.assertEqual(descr, actual_description)
@@ -253,7 +253,7 @@ class SteamAppAssignInfoTests(unittest.TestCase):
 
         mock_fetch.return_value = self.response
         self.app.assign_json_info()
-        desc = self.response[str(self.id)]['data']['detailed_description']
+        desc = self.response[str(self.id)]['data']['short_description']
 
         self.assertEqual(desc, self.app.description)
 
@@ -297,3 +297,20 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         cur = self.response[str(self.id)]['data']['price_overview']['currency']
 
         self.assertEqual(cur, self.app.currency)
+
+    @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
+    def test_assign_json_info_currency_no_price_overview(self, mock_fetch):
+        """
+        Ensure that when the price is not available, price_overview dict is
+        not given any values, and hence anything else is not given values, too.
+        """
+
+        self.response[str(self.id)]['data']['price_overview'] = None
+        mock_fetch.return_value = self.response
+        self.app.assign_json_info()
+
+        self.assertFalse(self.app.currency)
+        self.assertFalse(self.app.initial_price)
+        self.assertFalse(self.app.final_price)
+        self.assertFalse(self.app.discount)
+

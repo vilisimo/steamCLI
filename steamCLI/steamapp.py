@@ -41,10 +41,16 @@ class SteamApp:
         self.metacritic = self._get_metacritic_score(app_data)
 
         price_dict = self._get_price_overview(app_data)
-        self.currency = price_dict['currency']
-        self.initial_price = price_dict['initial']
-        self.final_price = price_dict['final']
-        self.discount = price_dict['discount_percent']
+        if price_dict:
+            self.currency = price_dict['currency']
+            self.initial_price = price_dict['initial']
+            self.final_price = price_dict['final']
+            self.discount = price_dict['discount_percent']
+        else:
+            self.currency = None
+            self.initial_price = None
+            self.final_price = None
+            self.discount = None
 
     def _fetch_json(self, origin):
         """
@@ -70,7 +76,11 @@ class SteamApp:
         :return: name of the app.
         """
 
-        return json_data[str(self.appid)]['data']['name']
+        try:
+            title = json_data[str(self.appid)]['data']['name']
+        except KeyError:
+            title = None
+        return title
 
     def _get_release_date(self, json_data):
         """
@@ -80,7 +90,11 @@ class SteamApp:
         :return: release date of the app.
         """
 
-        return json_data[str(self.appid)]['data']['release_date']['date']
+        try:
+            date = json_data[str(self.appid)]['data']['release_date']['date']
+        except KeyError:
+            date = None
+        return date
 
     def _get_metacritic_score(self, json_data):
         """
@@ -90,7 +104,11 @@ class SteamApp:
         :return: metacritic score of the app.
         """
 
-        return json_data[str(self.appid)]['data']['metacritic']['score']
+        try:
+            meta = json_data[str(self.appid)]['data']['metacritic']['score']
+        except KeyError:
+            meta = None
+        return meta
 
     def _get_description(self, json_data):
         """
@@ -100,7 +118,11 @@ class SteamApp:
         :return: description of the app.
         """
 
-        return json_data[str(self.appid)]['data']['detailed_description']
+        try:
+            desc = json_data[str(self.appid)]['data']['short_description']
+        except KeyError:
+            desc = None
+        return desc
 
     def _get_price_overview(self, json_data):
         """
@@ -109,7 +131,11 @@ class SteamApp:
         :return: a dictionary of relevant price data.
         """
 
-        return json_data[str(self.appid)]['data']['price_overview']
+        try:
+            price = json_data[str(self.appid)]['data']['price_overview']
+        except KeyError:
+            price = None
+        return price
 
     def _fetch_text(self, origin):
         """
