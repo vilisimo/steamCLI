@@ -1,6 +1,8 @@
 import requests
 import json
 
+from steamCLI.config import Config
+
 
 class SteamApp:
     def __init__(self, title=None, appid=None):
@@ -23,6 +25,27 @@ class SteamApp:
 
         self.appid = app_info['appid'] if app_info else None
 
+    def assign_json_info(self):
+        """ Retrieves and assigns information about an app to the object. """
+
+        # Get JSON from a link specified in .ini file.
+        config = Config('steamCLI', 'resources.ini')
+        # NOTE: region should also be added to the end, like so: &cc=region
+        resource = config.get_value('SteamAPIs', 'appinfo') + str(self.appid)
+        app_data = self._fetch_json(resource)
+
+        # Field assignment
+        self.title = self._get_title(app_data)
+        self.release_date = self._get_release_date(app_data)
+        self.description = self._get_description(app_data)
+        self.metacritic = self._get_metacritic_score(app_data)
+
+        price_dict = self._get_price_overview(app_data)
+        self.currency = price_dict['currency']
+        self.initial_price = price_dict['initial']
+        self.final_price = price_dict['final']
+        self.discount = price_dict['discount_percent']
+
     def _fetch_json(self, origin):
         """
         Extracts a JSON object from a given app link.
@@ -39,7 +62,7 @@ class SteamApp:
 
         return json_data
 
-    def _get_name(self, json_data):
+    def _get_title(self, json_data):
         """
         Finds name in JSON data.
 
@@ -48,6 +71,16 @@ class SteamApp:
         """
 
         return json_data[str(self.appid)]['data']['name']
+
+    def _get_release_date(self, json_data):
+        """
+        Finds release date of an app.
+
+        :param json_data: data about a steam app in a dict format.
+        :return: release date of the app.
+        """
+
+        return json_data[str(self.appid)]['data']['release_date']['date']
 
     def _get_metacritic_score(self, json_data):
         """
