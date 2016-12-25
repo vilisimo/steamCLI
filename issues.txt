@@ -1,0 +1,3 @@
+-multiple id's, some of them don't work (e.g. borderlands)
+-needs to take region into account
+-some of the games have price_in_cents (war of the roses)
