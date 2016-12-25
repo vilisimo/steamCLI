@@ -45,12 +45,31 @@ class SteamApp:
             self.currency = price_dict['currency']
             self.initial_price = price_dict['initial']
             self.final_price = price_dict['final']
-            self.discount = price_dict['discount_percent']
+            self.discount = self._calculate_discount(self.initial_price, 
+                                                     self.final_price)
         else:
             self.currency = None
             self.initial_price = None
             self.final_price = None
-            self.discount = None
+            self.discount = 0
+
+    def _calculate_discount(self, initial, current):
+        """
+        Calculates the % difference between initial and current price. 
+
+        Note: when initial is 0 (that is, old price was lower than the new one -
+        very unlikely in Steam), we assume that increase is (new price * 100)%.
+        """
+
+        if current == 0:
+            return -100
+
+        difference = current - initial
+        # Division by 0 is not allowed. 1, however, will not change the price.
+        initial = 1 if initial == 0 else initial
+        percent = (difference / initial) * 100
+
+        return int(round(percent, 0))
 
     def _fetch_json(self, origin):
         """

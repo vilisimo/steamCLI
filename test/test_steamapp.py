@@ -277,16 +277,17 @@ class SteamAppAssignInfoTests(unittest.TestCase):
 
         self.assertEqual(price, self.app.final_price)
 
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
-    def test_assign_json_info_discount(self, mock_fetch):
-        """ Ensures assign_info() assigns price discount. """
+    # # Not needed at the moment - discount is calculated by taking prices.
+    # @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
+    # def test_assign_json_info_discount(self, mock_fetch):
+    #     """ Ensures assign_info() assigns price discount. """
 
-        mock_fetch.return_value = self.response
-        self.app.assign_json_info()
-        discount = self.response[str(self.id)]['data']['price_overview'][
-            'discount_percent']
+    #     mock_fetch.return_value = self.response
+    #     self.app.assign_json_info()
+    #     discount = self.response[str(self.id)]['data']['price_overview'][
+    #         'discount_percent']
 
-        self.assertEqual(discount, self.app.discount)
+    #     self.assertEqual(discount, self.app.discount)
 
     @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
     def test_assign_json_info_currency(self, mock_fetch):
@@ -314,3 +315,61 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         self.assertFalse(self.app.final_price)
         self.assertFalse(self.app.discount)
 
+
+class HelperFunctionsTests(unittest.TestCase):
+    """ Test suite for functions that support SteamApp's functionality. """
+
+    def setUp(self):
+        self.app = SteamApp()
+
+    def test_calculate_discount_proper_values(self):
+        """
+        Ensures the function calculates correct percentage with valid values.
+        """
+
+        initial = 100.00
+        current = 50.00
+        expected = -50
+        percent = self.app._calculate_discount(initial, current)
+
+        self.assertEqual(expected, percent)
+
+    def test_calculate_discount_doubles(self):
+        """ Ensures correct percentages are derived from doubles. """
+
+        initial = 29.99
+        current = 7.49
+        expected = -75
+        percent = self.app._calculate_discount(initial, current)
+
+        self.assertEqual(expected, percent)
+
+    def test_calculate_price_higher_than_before(self):
+        """ Ensure that initial < current does not break the function """
+
+        initial = 1
+        current = 3
+        expected = 200
+        percent = self.app._calculate_discount(initial, current)
+
+        self.assertEqual(expected, percent)
+
+    def test_calculate_price_zero(self):
+        """ Ensure that zero initial/current does not break the function. """
+
+        initial = 0
+        current = 3
+        expected = 300
+        percent = self.app._calculate_discount(initial, current)
+
+        self.assertEqual(expected, percent)
+
+    def test_calculate_app_free(self):
+        """ Ensure that when a game/app is free, discount is shown as -100%. """
+
+        initial = 16456.46
+        current = 0
+        expected = -100
+        percent = self.app._calculate_discount(initial, current)
+
+        self.assertEqual(expected, percent)
