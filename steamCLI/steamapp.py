@@ -5,25 +5,35 @@ from steamCLI.config import Config
 
 
 class SteamApp:
-    def __init__(self, title=None, appid=None):
-        self.title = title
-        self.appid = appid
-
-    def assign_id(self, origin):
+    def __init__(self):
         """
-        Assigns an app id to an app.
+        Values shown only for readability. In the ideal case, we aim to assign
+        values to all of them.
+        """
+
+        # Key information
+        self.title, self.appid = [None]*2
+        # Additional game information
+        self.release_date, self.description, self.metascore = [None]*3
+        # Pricing information
+        self.currency, self.initial_price, self.final_price = [None]*3
+        self.discount = None
+
+    def find_app(self, origin, title=None, appid=None):
+        """
+        Ensures that an app can be found on Steam by going through a list of
+        dictionaries and checking whether they have a given id/title.
 
         :param origin: url to resource: where a list of games is located.
+        :param title: title of an app that needs to be checked.
+        :param appid: id of an app that needs to be checked.
         """
 
-        # If app already has a defined ID, there is no need to search for it.
-        if self.appid:
-            return
-
         text = self._fetch_text(origin)
-        app_info = self._get_app_dict(text)
+        app_info = self._get_app_dict(text, title=title, appid=appid)
 
         self.appid = app_info['appid'] if app_info else None
+        self.title = app_info['name'] if app_info else None
 
     def assign_steam_info(self, region='uk'):
         """ Retrieves and assigns information about an app to the object. """
@@ -35,7 +45,7 @@ class SteamApp:
         self.title = self._get_title(app_data)
         self.release_date = self._get_release_date(app_data)
         self.description = self._get_description(app_data)
-        self.metacritic = self._get_metacritic_score(app_data)
+        self.metascore = self._get_metacritic_score(app_data)
 
         price_dict = self._get_price_overview(app_data)
         if price_dict:
@@ -76,22 +86,6 @@ class SteamApp:
         percent = (difference / initial) * 100
 
         return int(round(percent, 0))
-
-    def _fetch_json(self, origin):
-        """
-        Extracts a JSON object from a given app link.
-
-        :param origin: link to a resource that is to be consumed.
-        """
-
-        response = requests.get(origin)
-        json_data = response.json()
-
-        # Steam informs us whether the game was found or not.
-        if not json_data[str(self.appid)]['success']:
-            raise requests.HTTPError("Resource not found")
-
-        return json_data
 
     def _get_title(self, json_data):
         """
@@ -162,6 +156,22 @@ class SteamApp:
             price = None
         return price
 
+    def _fetch_json(self, origin):
+        """
+        Extracts a JSON object from a given app link.
+
+        :param origin: link to a resource that is to be consumed.
+        """
+
+        response = requests.get(origin)
+        json_data = response.json()
+
+        # Steam informs us whether the game was found or not.
+        if not json_data[str(self.appid)]['success']:
+            raise requests.HTTPError("Resource not found")
+
+        return json_data
+
     def _fetch_text(self, origin):
         """
         Gets the textual JSON representation from a given link.
@@ -177,7 +187,7 @@ class SteamApp:
         else:
             return response.text
 
-    def _get_app_dict(self, json_text):
+    def _get_app_dict(self, json_text, title=None, appid=None):
         """
         Extracts dict in which app resides from JSON response by loading textual
         representation of JSON and applying private inner function to it over
@@ -195,9 +205,13 @@ class SteamApp:
             """
 
             try:
-                if dictionary["name"].lower() == self.title.lower():
+                if title:
+                    if dictionary["name"].lower() == title.lower():
                     # Can't do "d=None <..> d = dictionary": None is returned?..
-                    app_dict.append(dictionary)
+                        app_dict.append(dictionary)
+                else:
+                    if dictionary["appid"] == appid:
+                        app_dict.append(dictionary)
             except KeyError:
                 pass
             return dictionary

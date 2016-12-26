@@ -1,27 +1,26 @@
+# To run single test module:
+# >>> python -m unittest test.test_some_module
+
 import unittest
-import json
 
 from unittest import mock
 from requests import HTTPError
 
 from steamCLI.steamapp import SteamApp
 
-# To run single test module:
-# >>> python -m unittest test.test_some_module
-
-# Fake resource that calls access
+# Stubs that tests can use.
 RESOURCE = '{"applist": {"apps": {"app": [{"appid": 8,"name": "winui2"}]}}}'
+MOCK_DICT = {"appid": 8, "name": "winui2"}
 
 
 class SteamAppFetchTextAssignIDTests(unittest.TestCase):
-    """
-    Tests related to functionality necessary to find app id.
-    """
+    """ Tests related to functionality necessary to find app id. """
 
     def setUp(self):
         self.url = 'http://api.example.com/test/'
-        self.title = "winui2"
-        self.app = SteamApp(self.title)
+        self.title = MOCK_DICT["name"]
+        self.appid = MOCK_DICT["appid"]
+        self.app = SteamApp()
 
     @mock.patch('steamCLI.steamapp.requests.get')
     def test_fetch_text(self, mock_get):
@@ -54,65 +53,83 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
     def test_get_app_dict(self):
         """ Ensures _get_app_dict() manages to find relevant dictionaries """
 
-        expected = {"appid": 8, "name": "winui2"}
-        result = self.app._get_app_dict(RESOURCE)
+        result = self.app._get_app_dict(RESOURCE, title=self.title)
 
-        self.assertEqual(expected, result)
+        self.assertEqual(MOCK_DICT, result)
 
     def test_get_app_dict_case_insensitive(self):
         """ Ensure that _get_app_dict() is not case sensitive. """
 
-        self.app.title = "WInuI2"
-        expected = {"appid": 8, "name": "winui2"}
-        result = self.app._get_app_dict(RESOURCE)
+        result = self.app._get_app_dict(RESOURCE, title=self.title.upper())
 
-        self.assertEqual(expected, result)
+        self.assertEqual(MOCK_DICT, result)
 
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_text')
-    def test_assign_id(self, mock_fetch):
-        """ Ensures that ID can be found when a valid resource is provided. """
+    def test_get_app_dict_with_id(self):
+        """
+        Ensure that _get_app_dict() works not only with title, but with app
+        id as well.
+        """
 
-        mock_fetch.return_value = RESOURCE
-        self.app.assign_id(self.url)
+        result = self.app._get_app_dict(RESOURCE, appid=self.appid)
 
-        self.assertEqual(self.app.appid, 8)
+        self.assertEqual(MOCK_DICT, result)
+
+    def test_get_app_dict_with_id_no_such_id(self):
+        """ Ensure that when the ID is wrong, nothing is found. """
+
+        result = self.app._get_app_dict(RESOURCE, appid=0)
+
+        self.assertFalse(result)
 
     @mock.patch('steamCLI.steamapp.SteamApp._fetch_text')
     @mock.patch.object(SteamApp, '_get_app_dict')
-    def test_assign_id_no_dict_returned(self, mock_dict, mock_fetch):
+    def test_find_app_with_title(self, mock_get_dict, mock_fetch):
+        """
+        Ensures that an app can be found when a valid resource and a valid app
+        title is provided.
+        """
+
+        mock_fetch.return_value = RESOURCE
+        mock_get_dict.return_value = MOCK_DICT
+        self.app.find_app(self.url, title=self.title)
+
+        self.assertEqual(self.app.appid, MOCK_DICT['appid'])
+
+    @mock.patch('steamCLI.steamapp.SteamApp._fetch_text')
+    @mock.patch.object(SteamApp, '_get_app_dict')
+    def test_find_app_with_id(self, mock_get_dict, mock_fetch):
+        """
+        Ensures that an app can be found when a valid resource and a valid
+        app id is provided.
+        """
+
+        mock_fetch.return_value = RESOURCE
+        mock_get_dict.return_value = MOCK_DICT
+        self.app.find_app(self.url, appid=self.appid)
+
+        self.assertEqual(self.app.title, MOCK_DICT['name'])
+
+    @mock.patch('steamCLI.steamapp.SteamApp._fetch_text')
+    @mock.patch.object(SteamApp, '_get_app_dict')
+    def test_find_app_no_dict_returned(self, mock_dict, mock_fetch):
         """ Ensures that ID is not found with an invalid resource. """
 
         mock_fetch.return_value = RESOURCE
         mock_dict.return_value = None
-        self.app.assign_id(self.url)
+        self.app.find_app(self.url)
 
         self.assertFalse(self.app.appid)
+        self.assertFalse(self.app.title)
 
-    def test_assign_id_with_id(self):
-        """
-        Ensure that when appid is defined upon creation of an object, no further
-        processing is done, i.e. no other methods inside assign_id() are called.
-        """
-
-        app = SteamApp(appid=1)
-        with mock.patch.object(app, '_fetch_text') as m:
-            a = app.assign_id(self.url)
-
-        assert not m.called, "Method should not have been called: appid exists."
-
-        with mock.patch.object(app, '_get_app_dict') as m:
-            app.assign_id(self.url)
-
-        assert not m.called, "Method should not have been called: appid exists."
-
-    # # In case there is a need to check it sometime later. Passes as of Dec 15.
+    # # In case there is a need to check it sometime later. Passes as of Dec 26.
     # def test_real_deal(self):
     #     """ Ensure everything works with a proper steam api. """
     #
     #     url = 'http://api.steampowered.com/ISteamApps/GetAppList/v0002/'
-    #     app = SteamApp(title="DungeonUp")
+    #     title = "DungeonUp"
+    #     app = SteamApp()
     #     expected_id = 388620
-    #     app.assign_id(url)
+    #     app.find_app(url, title=title)
     #     real_id = app.appid
     #
     #     self.assertEqual(expected_id, real_id)
@@ -127,7 +144,8 @@ class SteamAppAssignInfoTests(unittest.TestCase):
     def setUp(self):
         self.id = 1
         self.url = 'http://api.example.com/test/'
-        self.app = SteamApp(appid=self.id)
+        self.app = SteamApp()
+        self.app.appid = self.id
 
         self.response = {str(self.id): {'success': True, 'data': {
             'name': 'Test',
@@ -181,7 +199,6 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         Ensures that a name can be extracted from a correctly formed dict.
         """
 
-        self.app.appid = self.id
         expected_name = self.response[str(self.id)]['data']['name']
         actual_name = self.app._get_title(self.response)
 
@@ -254,7 +271,7 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         self.app.assign_steam_info()
         score = self.response[str(self.id)]['data']['metacritic']['score']
 
-        self.assertEqual(score, self.app.metacritic)
+        self.assertEqual(score, self.app.metascore)
 
     @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
     def test_assign_steam_info_description(self, mock_fetch):
@@ -335,11 +352,12 @@ class SteamAppAssignInfoTests(unittest.TestCase):
 
         self.assertTrue(self.app.release_date)
         self.assertTrue(self.app.description)
-        self.assertTrue(self.app.metacritic)
+        self.assertTrue(self.app.metascore)
         self.assertTrue(self.app.currency)
         self.assertTrue(self.app.initial_price)
         self.assertTrue(self.app.final_price)
         self.assertTrue(self.app.discount)
+
 
 class HelperFunctionsTests(unittest.TestCase):
     """ Test suite for functions that support SteamApp's functionality. """
