@@ -1,5 +1,5 @@
 ## About
-steamCLi is a command line interface tool that allows a user to search steam 
+steamCLI is a command line interface tool that allows a user to search steam 
 for information about the game/app straight form command line. 
  
 ## Future
@@ -14,5 +14,4 @@ steamCLI.
  - Getting information about where to find the best deal for an app.
 
 **Optional:**
- - Getting the game's description.
  - Showing whether the game has co-op, multi-player, controller support.

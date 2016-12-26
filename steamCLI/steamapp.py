@@ -25,14 +25,11 @@ class SteamApp:
 
         self.appid = app_info['appid'] if app_info else None
 
-    def assign_json_info(self):
+    def assign_steam_info(self, region='uk'):
         """ Retrieves and assigns information about an app to the object. """
 
-        # Get JSON from a link specified in .ini file.
-        config = Config('steamCLI', 'resources.ini')
-        # NOTE: region should also be added to the end, like so: &cc=region
-        resource = config.get_value('SteamAPIs', 'appinfo') + str(self.appid)
-        app_data = self._fetch_json(resource)
+        steam_url = self._get_steam_app_url(region)
+        app_data = self._fetch_json(steam_url)
 
         # Field assignment
         self.title = self._get_title(app_data)
@@ -52,6 +49,15 @@ class SteamApp:
             self.initial_price = None
             self.final_price = None
             self.discount = 0
+
+    def _get_steam_app_url(self, region):
+        """ Constructs an app's url. """
+
+        config = Config('steamCLI', 'resources.ini')
+        resource = config.get_value('SteamAPIs', 'appinfo') + str(self.appid)
+        resource_url = resource + '&cc=' + region
+
+        return resource_url
 
     def _calculate_discount(self, initial, current):
         """
