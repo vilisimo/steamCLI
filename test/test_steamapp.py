@@ -217,7 +217,7 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         """ Ensures that metacritic score can be extracted. """
 
         score = self.response[str(self.id)]['data']['metacritic']['score']
-        metacritic = self.app._get_metacritic_score(self.response)
+        metacritic = self.app._get_metascore(self.response)
 
         self.assertEqual(score, metacritic)
 

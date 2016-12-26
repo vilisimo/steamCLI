@@ -45,7 +45,7 @@ class SteamApp:
         self.title = self._get_title(app_data)
         self.release_date = self._get_release_date(app_data)
         self.description = self._get_description(app_data)
-        self.metascore = self._get_metacritic_score(app_data)
+        self.metascore = self._get_metascore(app_data)
 
         price_dict = self._get_price_overview(app_data)
         if price_dict:
@@ -69,9 +69,10 @@ class SteamApp:
 
         return resource_url
 
-    def _calculate_discount(self, initial, current):
+    @staticmethod
+    def _calculate_discount(initial, current):
         """
-        Calculates the % difference between initial and current price. 
+        Calculates the % difference between initial and current price.
 
         Note: when initial is 0 (that is, old price was lower than the new one -
         very unlikely in Steam), we assume that increase is (new price * 100)%.
@@ -115,12 +116,12 @@ class SteamApp:
             date = None
         return date
 
-    def _get_metacritic_score(self, json_data):
+    def _get_metascore(self, json_data):
         """
-        Finds metacritic score in JSON data.
+        Finds metascore in JSON data.
 
         :param json_data: data about a steam app in a dict format.
-        :return: metacritic score of the app.
+        :return: metascore of the app.
         """
 
         try:
@@ -187,7 +188,8 @@ class SteamApp:
         else:
             return response.text
 
-    def _get_app_dict(self, json_text, title=None, appid=None):
+    @staticmethod
+    def _get_app_dict(json_text, title=None, appid=None):
         """
         Extracts dict in which app resides from JSON response by loading textual
         representation of JSON and applying private inner function to it over
