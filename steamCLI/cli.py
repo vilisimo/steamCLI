@@ -4,7 +4,37 @@ from steamCLI.config import Config
 from steamCLI.steamapp import SteamApp
 
 
-def create_parser(config):
+def main():
+    config = Config('steamCLI', 'resources.ini')
+    app_list = config.get_value('SteamAPIs', 'applist')
+
+    parser = _create_parser(config)
+    args = parser.parse_args()
+
+    app = SteamApp()
+    if args.title:
+        # Shell eats up special characters such as ', &, etc. Hence, input().
+        app_title = None
+        while not app_title:
+            app_title = input("Enter title: ").strip()
+        app.find_app(origin=app_list, title=app_title)
+    elif args.appid:
+        app.find_app(origin=app_list, appid=args.appid)
+
+    print("Gathering information, hold tight...\n")
+
+    if app.appid:
+        app.assign_steam_info(region=args.region)
+        _print_application_info(app, desc=args.description)
+    else:
+        print("Application was not found. Is the supplied information correct?")
+
+        # json_data = app._fetch_json(
+        #     'http://store.steampowered.com/api/appdetails?appids={}'.format(app.appid))
+        # pprint.pprint(json_data)
+
+
+def _create_parser(config):
     """
     Initializes parser with values from a config file.
     """
@@ -22,79 +52,41 @@ def create_parser(config):
                        metavar="val")
     parser.add_argument("-d", "--description", action="store_true",
                         help=config.get_value('HelpText', 'desc_help'))
-    parser.add_argument("-r", "--region", action="store", metavar="val", 
-                         default=default_region, choices=regions, 
-                        help=config.get_value('HelpText', 'region_help') + 
+    parser.add_argument("-r", "--region", action="store", metavar="val",
+                        default=default_region, choices=regions,
+                        help=config.get_value('HelpText', 'region_help') +
                         ' Available values: ' + ", ".join(regions))
-    
+
     return parser
 
 
-def main():
-    config = Config('steamCLI', 'resources.ini')
-    APP_LIST = config.get_value('SteamAPIs', 'applist')
-    REGIONS = config.get_value('SteamRegions', 'regions').split(',')
+def _print_application_info(app, desc=False, max_chars=79):
+    """
+    Prints information about the given app.
 
-    parser = create_parser(config)
+    :param app: app for which info needs to be printed out.
+    :param desc: whether description should be shown.
+    :param max_chars: how many chars there are in a typical line terminal.
+    """
 
-    args = parser.parse_args()
-    if args.region and args.region not in REGIONS:
-        print("Region not recognized. Default will be used. Available values:\n"
-              "'au', 'br', 'ca', 'cn', 'eu1', 'eu2', 'ru', 'tr', 'uk', 'us'")
-        print()
-        args.region = config.get_value('SteamRegions', 'default')
+    title = app.title
+    release_date = app.release_date if app.release_date else "no release date"
+    meta = app.metascore
+    initial = round(app.initial_price / 100, 2) if app.initial_price else "N/A"
+    current = round(app.final_price / 100, 2) if app.final_price else "N/A"
+    currency = app.currency if app.currency else ""
+    discount = app.discount
 
-    app = SteamApp()
-    if args.title:
-        # Shell eats up special characters, such as ', &, etc. Hence, input().
-        app_title = None
-        while not app_title:
-            app_title = input("Enter title:\t").strip()
-        app.title = app_title  # Reassign later, so that capwords are not needed
+    title = f"*** {title} ({release_date}) ***"
+    prices = f"{current} {currency} ({discount}% of {initial} {currency})"
+    meta = f"Metacritic score: {meta}"
+    print(title.center(max_chars))
+    print(prices.center(max_chars))
+    print(meta.center(max_chars))
 
-        print("Gathering information, hold tight...\n")
-        app.assign_id(origin=APP_LIST)
-        # From here function should be used, as both appid and title will use it
-        if app.appid:
-            app.assign_json_info()
-            values = {
-                'title': app.title,
-                'release_date': app.release_date,
-                'meta': app.metacritic,
-                'description': app.description,
-                'initial': round(app.initial_price / 100, 2) if
-                app.initial_price else "N/A",
-                'current': round(app.final_price / 100, 2) if
-                app.final_price else "N/A",
-                'currency': app.currency if app.currency else "",
-                'discount': app.discount,
-            }
-
-            # Not the most efficient way, but more readable
-            title = "*** {title} ({release_date}) ***".format(**values)
-            print(title.center(79))
-            prices = "{current} {currency} ({discount}% of {initial} " \
-                     "{currency})".format(**values)
-            print(prices.center(79))
-            meta = "Metacritic score: {meta}".format(**values)
-            print(meta.center(79))
-            if args.description:
-                if len(values['description']) < 1:
-                    print("\nShort description unavailable.".center(79))
-                else:
-                    description = "\n{description}".format(**values)
-                    print(description.center(79))
+    if desc:
+        description = app.description
+        if len(description) < 1:
+            print("\nShort description unavailable.".center(max_chars))
         else:
-            print("Application was not found. Make sure the title is correct!")
-
-        # json_data = app._fetch_json(
-        #     'http://store.steampowered.com/api/appdetails?appids={}'.format(app.appid))
-        # pprint.pprint(json_data)
-
-    elif args.appID:
-        app.appid = args.appID
-        print(app.appid)
-        # json = app._fetch_json(
-        #     'http://store.steampowered.com/api/appdetails?appids=11')
-        # pprint.pprint(json["11"]['success'])
-
+            print(f"\n{description}".center(max_chars))

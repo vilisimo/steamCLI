@@ -6,7 +6,7 @@ import unittest
 from argparse import ArgumentError
 from unittest import mock
 
-from steamCLI.cli import create_parser
+from steamCLI.cli import _create_parser
 
 
 class ParserTests(unittest.TestCase):
@@ -37,7 +37,7 @@ class ParserTests(unittest.TestCase):
             region_help,
         ]
 
-        self.parser = create_parser(mock_config)
+        self.parser = _create_parser(mock_config)
 
     def test_creates_parser(self):
         """ Ensure the function creates parser object. """
@@ -68,10 +68,10 @@ class ParserTests(unittest.TestCase):
 
         argparse_mock = mock.MagicMock()
         with mock.patch('steamCLI.cli.argparse.ArgumentParser._print_message', 
-            argparse_mock):
+                        argparse_mock):
             with self.assertRaises((ArgumentError, SystemExit)):
                 region = 'as'
-                args = self.parser.parse_args(['-t', '-r', region])
+                self.parser.parse_args(['-t', '-r', region])
 
     def test_title_flag(self):
         """ Ensures true/false is stored when -t is passed in. """
