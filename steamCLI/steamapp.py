@@ -173,7 +173,8 @@ class SteamApp:
 
         return json_data
 
-    def _fetch_text(self, origin):
+    @staticmethod
+    def _fetch_text(origin):
         """
         Gets the textual JSON representation from a given link.
 
@@ -209,7 +210,6 @@ class SteamApp:
             try:
                 if title:
                     if dictionary["name"].lower() == title.lower():
-                    # Can't do "d=None <..> d = dictionary": None is returned?..
                         app_dict.append(dictionary)
                 else:
                     if dictionary["appid"] == appid:
