@@ -1,8 +1,8 @@
 import argparse
-import pprint
 
 from steamCLI.config import Config
 from steamCLI.steamapp import SteamApp
+
 
 def create_parser(config):
     """
@@ -10,30 +10,39 @@ def create_parser(config):
     """
 
     app_description = config.get_value('HelpText', 'app_help')
+    default_region = config.get_value('SteamRegions', 'default')
+    regions = config.get_value('SteamRegions', 'regions').split(',')
+
     parser = argparse.ArgumentParser(description=app_description)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-t", "--title", action="store_true",
                        help=config.get_value('HelpText', 'title_help'))
-    group.add_argument("-id", "--appID", type=int, action="store",
+    group.add_argument("-id", "--appid", type=int, action="store",
                        help=config.get_value('HelpText', 'id_help', ),
                        metavar="val")
     parser.add_argument("-d", "--description", action="store_true",
                         help=config.get_value('HelpText', 'desc_help'))
-    parser.add_argument("-r", "--region", action="store", metavar="val",
-                        help=config.get_value('HelpText', 'region_help'))
-    return parser.parse_args()
+    parser.add_argument("-r", "--region", action="store", metavar="val", 
+                         default=default_region, choices=regions, 
+                        help=config.get_value('HelpText', 'region_help') + 
+                        ' Available values: ' + ", ".join(regions))
+    
+    return parser
+
 
 def main():
     config = Config('steamCLI', 'resources.ini')
     APP_LIST = config.get_value('SteamAPIs', 'applist')
-    REGIONS = config.get_value('SteamRegions', 'regions')
+    REGIONS = config.get_value('SteamRegions', 'regions').split(',')
 
-    args = create_parser(config)
+    parser = create_parser(config)
+
+    args = parser.parse_args()
     if args.region and args.region not in REGIONS:
         print("Region not recognized. Default will be used. Available values:\n"
-              "['au', 'br', 'ca', 'cn', 'eu1', 'eu2', 'ru', 'tr', 'uk', 'us']")
+              "'au', 'br', 'ca', 'cn', 'eu1', 'eu2', 'ru', 'tr', 'uk', 'us'")
         print()
-        args.region = None
+        args.region = config.get_value('SteamRegions', 'default')
 
     app = SteamApp()
     if args.title:
