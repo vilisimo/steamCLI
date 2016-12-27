@@ -225,14 +225,16 @@ class SteamAppAssignInfoTests(unittest.TestCase):
             }
         }}}
 
-    def test_get_steam_app_url(self):
+    @mock.patch('steamCLI.config.Config.get_value')
+    def test_get_steam_app_url(self, mock_config):
         """ Ensure a correct url is constructed depending on region. """
 
+        mock_config.return_value = 'nevermind'
         region = "au"
         url = self.app._get_steam_app_url(region)
-        actual = url[-2:]
 
-        self.assertEqual(actual, region)
+        mock_config.assert_called()
+        self.assertTrue(url.endswith(region))
 
     @mock.patch('steamCLI.steamapp.requests.get')
     def test_fetch_json_no_resource(self, mock_get):

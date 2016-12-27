@@ -68,7 +68,7 @@ class SteamApp:
 
         config = Config('steamCLI', 'resources.ini')
         resource = config.get_value('SteamAPIs', 'appinfo') + str(self.appid)
-        resource_url = resource + '&cc=' + region
+        resource_url = f'{resource}&cc={region}'
 
         return resource_url
 
@@ -257,7 +257,7 @@ class SteamApp:
                 region = config.get_value('SteamRegions', 'default')
             for d in dicts:
                 appid = d['appid']
-                resource = f'{base_url}{appid}&&cc={region}'
+                resource = f'{base_url}{appid}&cc={region}'
                 response = requests.get(resource)
                 data = response.json()
                 if data[str(appid)]['success']:
