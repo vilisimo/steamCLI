@@ -42,6 +42,7 @@ class SteamApp:
         app_data = self._fetch_json(steam_url)
 
         # Field assignment
+        # self.appid = self._get_appid(app_data)
         self.title = self._get_title(app_data)
         self.release_date = self._get_release_date(app_data)
         self.description = self._get_description(app_data)
@@ -221,3 +222,16 @@ class SteamApp:
         json.loads(json_text, object_hook=_decode_dictionary)
 
         return app_dict[0] if app_dict else None
+
+    @staticmethod
+    def _choose_one(dicts):
+        if dicts:
+            config = Config('steamCLI', 'resources.ini')
+            for d in dicts:
+                appid = d['appid']
+                resource = config.get_value('SteamAPIs', 'appinfo') + str(appid)
+                response = requests.get(resource)
+                data = response.json()
+                if data[str(appid)]['success']:
+                    return d
+        return None

@@ -134,6 +134,65 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
     #
     #     self.assertEqual(expected_id, real_id)
 
+    @mock.patch('steamCLI.steamapp.requests.get')
+    def test_choose_one(self, mock_get):
+        """
+        Ensures that _choose_one() method returns a JSON info that has
+        success set as true. If no such dictionary exists, then it
+        should return None.
+        """
+
+        # Dictionaries that we get from a list of all apps
+        # (http://api.steampowered.com/ISteamApps/GetAppList/v0002/)
+        applist_d1 = {"appid": 1, "name": "test"}
+        applist_d2 = {"appid": 2, "name": "test"}
+        applist_d3 = {"appid": 3, "name": "test"}
+        dict_list = [applist_d1, applist_d2, applist_d3]
+        # Stub dictionary similar to what we get accessing individual apps
+        # E.g.: http://store.steampowered.com/api/appdetails?appids=10
+        app_d1 = {"1": {"success": False}}
+        app_d2 = {"2": {"success": False}}
+        app_d3 = {"3": {"success": True}}
+        fake_r1 = mock.Mock()
+        fake_r2 = mock.Mock()
+        fake_r3 = mock.Mock()
+        fake_r1.json.return_value = app_d1
+        fake_r2.json.return_value = app_d2
+        fake_r3.json.return_value = app_d3
+        mock_get.side_effect = [fake_r1, fake_r2, fake_r3]
+        json_data = self.app._choose_one(dict_list)
+
+        fake_r1.json.assert_called_with()
+        fake_r2.json.assert_called_with()
+        fake_r3.json.assert_called_with()
+        self.assertEqual(applist_d3, json_data)
+
+    @mock.patch('steamCLI.steamapp.requests.get')
+    def test_choose_one_no_success(self, mock_get):
+        """
+        Ensures that when dicts passed do not have success: True None is
+        returned.
+        """
+
+        applist_dict = {"appid": 1, "name": "test"}
+        dict_list = [applist_dict, ]
+        app_dict = {"1": {"success": False}}
+        fake_response = mock.Mock()
+        fake_response.json.return_value = app_dict
+        mock_get.return_value = fake_response
+        json_data = self.app._choose_one(dict_list)
+
+        fake_response.json.assert_called_with()
+        self.assertFalse(json_data)
+
+    def test_choose_one_passed_empty_list(self):
+        """ Ensure empty list does not break the function. """
+
+        empty_list = []
+        json_data = self.app._choose_one(empty_list)
+
+        self.assertFalse(json_data)
+
 
 class SteamAppAssignInfoTests(unittest.TestCase):
     """
