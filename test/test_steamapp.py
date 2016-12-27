@@ -164,11 +164,47 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         mock_get.side_effect = [fake_r1, fake_r2, fake_r3]
         json_data = self.app._choose_complete_json(dict_list)
 
-        fake_r1.json.assert_called_with()
-        fake_r2.json.assert_called_with()
-        fake_r3.json.assert_called_with()
+        fake_r1.json.assert_called_once()
+        fake_r2.json.assert_called_once()
+        fake_r3.json.assert_called_once()
         mock_config.assert_called()
-        self.assertEqual(applist_d3, json_data)
+        self.assertEqual(app_d3, json_data)
+
+    @mock.patch('steamCLI.steamapp.requests.get')
+    @mock.patch('steamCLI.config.Config.get_value')
+    def test_choose_complete_json_several_true(self, mock_config, mock_get):
+        """
+        Ensures that _choose_one() method returns a JSON info that has
+        success set as true. If no such dictionary exists, then it
+        should return None.
+        """
+
+        mock_config.side_effect = ["doesn't matter", "doesn't matter"]
+        # Dictionaries that we get from a list of all apps
+        # (http://api.steampowered.com/ISteamApps/GetAppList/v0002/)
+        applist_d1 = {"appid": 1, "name": "test"}
+        applist_d2 = {"appid": 2, "name": "test"}
+        applist_d3 = {"appid": 3, "name": "test"}
+        dict_list = [applist_d1, applist_d2, applist_d3]
+        # Stub dictionary similar to what we get accessing individual apps
+        # E.g.: http://store.steampowered.com/api/appdetails?appids=10
+        app_d1 = {"1": {"success": False}}
+        app_d2 = {"2": {"success": True}}
+        app_d3 = {"3": {"success": True}}  # Should not reach this one.
+        fake_r1 = mock.Mock()
+        fake_r2 = mock.Mock()
+        fake_r3 = mock.Mock()
+        fake_r1.json.return_value = app_d1
+        fake_r2.json.return_value = app_d2
+        fake_r3.json.return_value = app_d3
+        mock_get.side_effect = [fake_r1, fake_r2, fake_r3]
+        json_data = self.app._choose_complete_json(dict_list)
+
+        fake_r1.json.assert_called_once()
+        fake_r2.json.assert_called_once()
+        fake_r3.json.assert_not_called()  # Does not reach this one
+        mock_config.assert_called()
+        self.assertEqual(app_d2, json_data)
 
     @mock.patch('steamCLI.steamapp.requests.get')
     @mock.patch('steamCLI.config.Config.get_value')
@@ -187,7 +223,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         mock_get.return_value = fake_response
         json_data = self.app._choose_complete_json(dict_list)
 
-        fake_response.json.assert_called_with()
+        fake_response.json.assert_called_once()
         mock_config.assert_called()
         self.assertFalse(json_data)
 

@@ -261,5 +261,5 @@ class SteamApp:
                 response = requests.get(resource)
                 data = response.json()
                 if data[str(appid)]['success']:
-                    return d
+                    return data
         return None
