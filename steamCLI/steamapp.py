@@ -19,7 +19,7 @@ class SteamApp:
         self.currency, self.initial_price, self.final_price = [None]*3
         self.discount = None
 
-    def find_app(self, origin, title=None, appid=None):
+    def find_app(self, origin, title=None, appid=None, region=None):
         """
         Ensures that an app can be found on Steam by going through a list of
         dictionaries and checking whether they have a given id/title.
@@ -27,10 +27,12 @@ class SteamApp:
         :param origin: url to resource: where a list of games is located.
         :param title: title of an app that needs to be checked.
         :param appid: id of an app that needs to be checked.
+        :param region: region for which the information should be retrieved.
         """
 
         text = self._fetch_text(origin)
-        app_info = self._get_app_dict(text, title=title, appid=appid)
+        app_info = self._get_app_dict(text, title=title, appid=appid,
+                                      region=region)
 
         self.appid = app_info['appid'] if app_info else None
         self.title = app_info['name'] if app_info else None
@@ -191,13 +193,14 @@ class SteamApp:
             return response.text
 
     @staticmethod
-    def _get_app_dict(json_text, title=None, appid=None):
+    def _get_app_dict(json_text, title=None, appid=None, region=None):
         """
         Extracts dict in which app resides from JSON response by loading textual
         representation of JSON and applying private inner function to it over
         and over again.
 
         :params json_text: textual representation of JSON object.
+        :return: dictionary that has the relevant information about an app.
         """
 
         app_dict = []
@@ -206,6 +209,8 @@ class SteamApp:
             """
             Search for key with "name" value that == target application name.
             If found, it means the dictionary is the one we are interested in.
+
+            Typical input: {"appid": int, "name": str}
             """
 
             try:
@@ -224,12 +229,35 @@ class SteamApp:
         return app_dict[0] if app_dict else None
 
     @staticmethod
-    def _choose_one(dicts):
+    def _choose_complete_json(dicts, region=None):
+        """
+        Goes through dictionaries to an app that can be consumed successfully.
+        That is, sometimes in Steam app list apps have identical names.
+        However, inputting corresponding ids to
+            http://store.steampowered.com/api/appdetails?appids=id
+        does not give any information back. E.g., there are 3 dictionaries
+        that have their title as "Borderlands", with corresponding IDs as
+        8950, 8980 and 8989. However, only 8980 responds to queries. All
+        others return {"[appid]":{"success":false}}, which is not useful.
+        Unfortunately, it is impossible to know which one will return a
+        useful response (at least without resorting to 3rd party APIs).
+        Hence, in worst case, each and every one of dicts will have to be
+        checked, potentially slowing the application significantly.
+
+        :param dicts: app dicts to be checked. Typical input:
+                      {"appid": int, "name": str}
+        :param region: region for which the information should be retrieved.
+        :return: JSON of successful query (i.e., dictionary with app info)
+        """
+
         if dicts:
             config = Config('steamCLI', 'resources.ini')
+            base_url = config.get_value('SteamAPIs', 'appinfo')
+            if not region:
+                region = config.get_value('SteamRegions', 'default')
             for d in dicts:
                 appid = d['appid']
-                resource = config.get_value('SteamAPIs', 'appinfo') + str(appid)
+                resource = f'{base_url}{appid}&&cc={region}'
                 response = requests.get(resource)
                 data = response.json()
                 if data[str(appid)]['success']:
