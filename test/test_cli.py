@@ -60,8 +60,13 @@ class ParserTests(unittest.TestCase):
 
         self.assertEqual(region, args.region)
 
-    def nothing():
-        pass
+    def test_assign_region_case_insensitive(self):
+        """ Ensures region is case insensitive. """
+
+        region = 'AU'
+        args = self.parser.parse_args(['-tr', region])
+
+        self.assertEqual(region.lower(), args.region)
 
     def test_invalid_region(self):
         """ Make sure that entering invalid region raises an error. """

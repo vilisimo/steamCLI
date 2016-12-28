@@ -12,19 +12,19 @@ def main():
     args = parser.parse_args()
 
     app = SteamApp()
+    # Title and id are required, but mutually exclusive -> we can do if else
     if args.title:
-        # Shell eats up special characters such as ', &, etc. Hence, input().
         app_title = None
         while not app_title:
+            # Shell eats up special characters such as ', &, etc.
             app_title = input("Enter title: ").strip()
-        app.find_app(origin=app_list, title=app_title)
-    elif args.appid:
-        app.find_app(origin=app_list, appid=args.appid)
-
-    print("Gathering information, hold tight...\n")
+        print("Gathering information, hold tight...\n")
+        app.find_app(origin=app_list, region=args.region, title=app_title)
+    else:
+        print("Gathering information, hold tight...\n")
+        app.find_app(origin=app_list, region=args.region, appid=args.appid)
 
     if app.appid:
-        app.assign_steam_info(region=args.region)
         _print_application_info(app, desc=args.description)
     else:
         print("Application was not found. Is the supplied information correct?")
@@ -53,7 +53,7 @@ def _create_parser(config):
     parser.add_argument("-d", "--description", action="store_true",
                         help=config.get_value('HelpText', 'desc_help'))
     parser.add_argument("-r", "--region", action="store", metavar="val",
-                        default=default_region, choices=regions,
+                        type=str.lower, default=default_region, choices=regions,
                         help=config.get_value('HelpText', 'region_help') +
                         ' Available values: ' + ", ".join(regions))
 
