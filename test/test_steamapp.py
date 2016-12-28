@@ -286,57 +286,125 @@ class SteamAppAssignInfoTests(unittest.TestCase):
             }
         }
 
-    def test_get_appid(self):
+    def test_get_value(self):
         """
-        Ensures that a appid can be extracted from a correctly formed dict.
-        """
-
-        expected_appid = self.response['steam_appid']
-        actual_appid = self.app._get_appid(self.response)
-
-        self.assertEqual(expected_appid, actual_appid)
-
-    def test_get_title(self):
-        """
-        Ensures that a name can be extracted from a correctly formed dict.
+        Ensures that _get_value() returns appropriate values given correct key.
         """
 
-        expected_title = self.response['name']
-        actual_title = self.app._get_title(self.response)
+        key = 'steam_appid'
+        value = self.app._get_value(self.response, key)
 
-        self.assertEqual(expected_title, actual_title)
+        self.assertEqual(self.response[key], value)
 
-    def test_get_release_date(self):
-        """ Ensures the release date of an app is extracted. """
+    def test_get_value_returns_none_with_incorrect_key(self):
+        """
+        Ensures that even when incorrect/non-existent key is supplied,
+        none is returned.
 
-        expected_date = self.response['release_date']['date']
-        actual_date = self.app._get_release_date(self.response)
+        Explanation: Steam's JSON is inconsistent and some games do not
+        necessarily have some of the usual information.
+        """
 
-        self.assertEqual(expected_date, actual_date)
+        key = 'detailed_description'
+        value = self.app._get_value(self.response, key)
 
-    def test_get_metacritic_score(self):
-        """ Ensures that metacritic score can be extracted. """
+        self.assertFalse(value)
 
-        score = self.response['metacritic']['score']
-        metacritic = self.app._get_metascore(self.response)
+    def test_get_nested_value(self):
+        """
+        Ensures that _get_nested_value() returns appropriate values given
+        correct keys.
+        """
 
-        self.assertEqual(score, metacritic)
+        outer_key = 'price_overview'
+        inner_key = 'currency'
+        value = self.app._get_nested_value(self.response, outer_key, inner_key)
 
-    def test_get_price_overview(self):
-        """ Ensures all relevant data is extracted from price overview. """
+        self.assertEqual(self.response[outer_key][inner_key], value)
 
-        expected = self.response['price_overview']
-        actual = self.app._get_price_overview(self.response)
+    def test_get_nested_value_outer_nonexistent_returns_none(self):
+        """
+        Ensures that when the outer key is not found, value return is
+        equal to None.
 
-        self.assertEqual(expected, actual)
+        Explanation: Steam's JSON is inconsistent and some games do not
+        necessarily have some of the usual information.
+        """
 
-    def test_get_description(self):
-        """ Ensures that description can be extracted. """
+        outer_key = 'price'
+        inner_key = 'currency'
 
-        descr = self.response['short_description']
-        actual_description = self.app._get_description(self.response)
+        value = self.app._get_nested_value(self.response, outer_key, inner_key)
 
-        self.assertEqual(descr, actual_description)
+        self.assertFalse(value)
+
+    def test_get_nested_value_inner_nonexistent_returns_none(self):
+        """
+        Ensures that when the inner key is not found, value returned is
+        equal to None.
+
+        Explanation: Steam's JSON is inconsistent and some games do not
+        necessarily have some of the usual information.
+        """
+
+        outer_key = 'price_overview'
+        inner_key = 'price'
+
+        value = self.app._get_nested_value(self.response, outer_key, inner_key)
+
+        self.assertFalse(value)
+
+    # def test_get_appid(self):
+    #     """
+    #     Ensures that a appid can be extracted from a correctly formed dict.
+    #     """
+    #
+    #     expected_appid = self.response['steam_appid']
+    #     actual_appid = self.app._get_appid(self.response)
+    #
+    #     self.assertEqual(expected_appid, actual_appid)
+    #
+    # def test_get_title(self):
+    #     """
+    #     Ensures that a name can be extracted from a correctly formed dict.
+    #     """
+    #
+    #     expected_title = self.response['name']
+    #     actual_title = self.app._get_title(self.response)
+    #
+    #     self.assertEqual(expected_title, actual_title)
+    #
+    # def test_get_release_date(self):
+    #     """ Ensures the release date of an app is extracted. """
+    #
+    #     expected_date = self.response['release_date']['date']
+    #     actual_date = self.app._get_release_date(self.response)
+    #
+    #     self.assertEqual(expected_date, actual_date)
+    #
+    # def test_get_metacritic_score(self):
+    #     """ Ensures that metacritic score can be extracted. """
+    #
+    #     score = self.response['metacritic']['score']
+    #     metacritic = self.app._get_metascore(self.response)
+    #
+    #     self.assertEqual(score, metacritic)
+    #
+    # def test_get_price_overview(self):
+    #     """ Ensures all relevant data is extracted from price overview. """
+    #
+    #     expected = self.response['price_overview']
+    #     actual = self.app._get_price_overview(self.response)
+    #
+    #     self.assertEqual(expected, actual)
+    #
+    # def test_get_description(self):
+    #     """ Ensures that description can be extracted. """
+    #
+    #     descr = self.response['short_description']
+    #     actual_description = self.app._get_description(self.response)
+    #
+    #     self.assertEqual(descr, actual_description)
 
     def test_assign_steam_info(self):
         """ Tests whether the function works given correct data. """
@@ -345,7 +413,7 @@ class SteamAppAssignInfoTests(unittest.TestCase):
 
         self.assertTrue(self.app.release_date)
         self.assertTrue(self.app.description)
-        self.assertTrue(self.app.metascore)
+        self.assertTrue(self.app.metacritic)
         self.assertTrue(self.app.currency)
         self.assertTrue(self.app.initial_price)
         self.assertTrue(self.app.final_price)
@@ -366,7 +434,7 @@ class SteamAppAssignInfoTests(unittest.TestCase):
 
         self.assertEqual(expected_appid, self.app.appid)
         self.assertEqual(expected_title, self.app.title)
-        self.assertEqual(score, self.app.metascore)
+        self.assertEqual(score, self.app.metacritic)
         self.assertEqual(desc, self.app.description)
         self.assertEqual(price, self.app.initial_price)
         self.assertEqual(fprice, self.app.final_price)
@@ -379,7 +447,7 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         not given any values, and hence anything else is not given values, too.
         """
 
-        self.response['price_overview'] = None
+        self.response.pop('price_overview', None)
         self.app._assign_steam_info(self.response)
 
         self.assertFalse(self.app.currency)
@@ -442,6 +510,27 @@ class HelperFunctionsTests(unittest.TestCase):
         initial = 16456.46
         current = 0
         expected = -100
+        percent = self.app._calculate_discount(initial, current)
+
+        self.assertEqual(expected, percent)
+
+    def test_calculate_price_is_none(self):
+        """
+        Ensure that when either of the prices is None, 0 is returned:
+            - initial price = None -> x$ always has 0% discount from None
+            - final price = None -> x$ is always 0% higher than None
+        """
+
+        initial = None
+        current = 100
+        expected = 0
+        percent = self.app._calculate_discount(initial, current)
+
+        self.assertEqual(expected, percent)
+
+        initial = 100
+        current = None
+        expected = 0
         percent = self.app._calculate_discount(initial, current)
 
         self.assertEqual(expected, percent)

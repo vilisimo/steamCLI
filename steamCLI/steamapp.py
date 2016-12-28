@@ -14,7 +14,7 @@ class SteamApp:
         # Key information
         self.title, self.appid = [None]*2
         # Additional game information
-        self.release_date, self.description, self.metascore = [None]*3
+        self.release_date, self.description, self.metacritic = [None] * 3
         # Pricing information
         self.currency, self.initial_price, self.final_price = [None]*3
         self.discount = None
@@ -46,28 +46,21 @@ class SteamApp:
         if not app_data:
             return
 
-        # steam_url = self._get_steam_app_url(region)
-        # app_data = self._fetch_json(steam_url)
-
-        # Field assignment
-        self.appid = self._get_appid(app_data)
-        self.title = self._get_title(app_data)
-        self.release_date = self._get_release_date(app_data)
-        self.description = self._get_description(app_data)
-        self.metascore = self._get_metascore(app_data)
-
-        price_dict = self._get_price_overview(app_data)
-        if price_dict:
-            self.currency = price_dict['currency']
-            self.initial_price = price_dict['initial']
-            self.final_price = price_dict['final']
-            self.discount = self._calculate_discount(self.initial_price, 
-                                                     self.final_price)
-        else:
-            self.currency = None
-            self.initial_price = None
-            self.final_price = None
-            self.discount = 0
+        self.appid = self._get_value(app_data, 'steam_appid')
+        self.title = self._get_value(app_data, 'name')
+        self.release_date = self._get_nested_value(app_data, 'release_date',
+                                                   'date')
+        self.description = self._get_value(app_data, 'short_description')
+        self.metacritic = self._get_nested_value(app_data, 'metacritic',
+                                                 'score')
+        self.currency = self._get_nested_value(app_data, 'price_overview',
+                                            'currency')
+        self.initial_price = self._get_nested_value(app_data, 'price_overview',
+                                                    'initial')
+        self.final_price = self._get_nested_value(app_data, 'price_overview',
+                                                  'final')
+        self.discount = self._calculate_discount(self.initial_price,
+                                                 self.final_price)
 
     def _calculate_discount(self, initial, current):
         """
@@ -76,6 +69,9 @@ class SteamApp:
         Note: when initial is 0 (that is, old price was lower than the new one -
         very unlikely in Steam), we assume that increase is (new price * 100)%.
         """
+
+        if initial is None or current is None:
+            return 0
 
         if current == 0:
             return -100
@@ -87,88 +83,129 @@ class SteamApp:
 
         return int(round(percent, 0))
 
-    def _get_appid(self, json_data):
+    def _get_value(self, json_data, key):
         """
-        Finds app id in JSON data.
+        Gets a key value from a given JSON.
 
-        :param json_data: data about a steam app in a dict format.
-        :return: name of the app.
-        """
+        As Steam's JSON data is inconsistent, it might very well miss some of
+        the things that are usually present in other apps. Hence, we simply
+        set the value to None instead of reporting the problem, as this is
+        (albeit rare) expected occurrence.
 
-        try:
-            appid = json_data['steam_appid']
-        except KeyError:
-            appid = None
-        return appid
-
-    def _get_title(self, json_data):
-        """
-        Finds name in JSON data.
-
-        :param json_data: data about a steam app in a dict format.
-        :return: name of the app.
+        :param json_data: dictionary which is to be inspected for a key-value.
+        :param key: dictionary key for which the value should be returned.
+        :return: value corresponding to a key.
         """
 
         try:
-            title = json_data['name']
+            value = json_data[key]
         except KeyError:
-            title = None
-        return title
+            value = None
+        return value
 
-    def _get_release_date(self, json_data):
+    def _get_nested_value(self, json_data, outer_key, inner_key):
         """
-        Finds release date of an app.
+        Gets a specified value from a given JSON.
 
-        :param json_data: data about a steam app in a dict format.
-        :return: release date of the app.
-        """
+        Information in Steam's response is not always 'flat'. it often
+        contains nested dictionaries, e.g. 'price_overview': {...}. Most of
+        the time, however, depth is limited to two levels.
 
-        try:
-            date = json_data['release_date']['date']
-        except KeyError:
-            date = None
-        return date
-
-    def _get_metascore(self, json_data):
-        """
-        Finds metascore in JSON data.
-
-        :param json_data: data about a steam app in a dict format.
-        :return: metascore of the app.
+        :param json_data: dictionary which is to be inspected for a key-value.
+        :param outer_key: key to get an inner dictionary.
+        :param inner_key: key to get a value from the inner dictionary.
+        :return: value corresponding to a key in the inner dictionary.
         """
 
-        try:
-            meta = json_data['metacritic']['score']
-        except KeyError:
-            meta = None
-        return meta
+        if outer_key not in json_data:
+            return None
+        if inner_key not in json_data[outer_key]:
+            return None
 
-    def _get_description(self, json_data):
-        """
-        Finds description of an app in JSON data.
+        return json_data[outer_key][inner_key]
 
-        :param json_data: data about a steam app in a dict format.
-        :return: description of the app.
-        """
-
-        try:
-            desc = json_data['short_description']
-        except KeyError:
-            desc = None
-        return desc
-
-    def _get_price_overview(self, json_data):
-        """
-        Finds information related to app price.
-
-        :return: a dictionary of relevant price data.
-        """
-
-        try:
-            price = json_data['price_overview']
-        except KeyError:
-            price = None
-        return price
+    # def _get_appid(self, json_data):
+    #     """
+    #     Finds app id in JSON data.
+    #
+    #     :param json_data: data about a steam app in a dict format.
+    #     :return: name of the app.
+    #     """
+    #
+    #     try:
+    #         appid = json_data['steam_appid']
+    #     except KeyError:
+    #         appid = None
+    #     return appid
+    #
+    # def _get_title(self, json_data):
+    #     """
+    #     Finds name in JSON data.
+    #
+    #     :param json_data: data about a steam app in a dict format.
+    #     :return: name of the app.
+    #     """
+    #
+    #     try:
+    #         title = json_data['name']
+    #     except KeyError:
+    #         title = None
+    #     return title
+    #
+    # def _get_release_date(self, json_data):
+    #     """
+    #     Finds release date of an app.
+    #
+    #     :param json_data: data about a steam app in a dict format.
+    #     :return: release date of the app.
+    #     """
+    #
+    #     try:
+    #         date = json_data['release_date']['date']
+    #     except KeyError:
+    #         date = None
+    #     return date
+    #
+    # def _get_metascore(self, json_data):
+    #     """
+    #     Finds metascore in JSON data.
+    #
+    #     :param json_data: data about a steam app in a dict format.
+    #     :return: metascore of the app.
+    #     """
+    #
+    #     try:
+    #         meta = json_data['metacritic']['score']
+    #     except KeyError:
+    #         meta = None
+    #     return meta
+    #
+    # def _get_description(self, json_data):
+    #     """
+    #     Finds description of an app in JSON data.
+    #
+    #     :param json_data: data about a steam app in a dict format.
+    #     :return: description of the app.
+    #     """
+    #
+    #     try:
+    #         desc = json_data['short_description']
+    #     except KeyError:
+    #         desc = None
+    #     return desc
+    #
+    # def _get_price_overview(self, json_data):
+    #     """
+    #     Finds information related to app price.
+    #
+    #     :return: a dictionary of relevant price data.
+    #     """
+    #
+    #     try:
+    #         price = json_data['price_overview']
+    #     except KeyError:
+    #         price = None
+    #     return price
 
     @staticmethod
     def _fetch_text(origin):
