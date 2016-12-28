@@ -354,58 +354,6 @@ class SteamAppAssignInfoTests(unittest.TestCase):
 
         self.assertFalse(value)
 
-    # def test_get_appid(self):
-    #     """
-    #     Ensures that a appid can be extracted from a correctly formed dict.
-    #     """
-    #
-    #     expected_appid = self.response['steam_appid']
-    #     actual_appid = self.app._get_appid(self.response)
-    #
-    #     self.assertEqual(expected_appid, actual_appid)
-    #
-    # def test_get_title(self):
-    #     """
-    #     Ensures that a name can be extracted from a correctly formed dict.
-    #     """
-    #
-    #     expected_title = self.response['name']
-    #     actual_title = self.app._get_title(self.response)
-    #
-    #     self.assertEqual(expected_title, actual_title)
-    #
-    # def test_get_release_date(self):
-    #     """ Ensures the release date of an app is extracted. """
-    #
-    #     expected_date = self.response['release_date']['date']
-    #     actual_date = self.app._get_release_date(self.response)
-    #
-    #     self.assertEqual(expected_date, actual_date)
-    #
-    # def test_get_metacritic_score(self):
-    #     """ Ensures that metacritic score can be extracted. """
-    #
-    #     score = self.response['metacritic']['score']
-    #     metacritic = self.app._get_metascore(self.response)
-    #
-    #     self.assertEqual(score, metacritic)
-    #
-    # def test_get_price_overview(self):
-    #     """ Ensures all relevant data is extracted from price overview. """
-    #
-    #     expected = self.response['price_overview']
-    #     actual = self.app._get_price_overview(self.response)
-    #
-    #     self.assertEqual(expected, actual)
-    #
-    # def test_get_description(self):
-    #     """ Ensures that description can be extracted. """
-    #
-    #     descr = self.response['short_description']
-    #     actual_description = self.app._get_description(self.response)
-    #
-    #     self.assertEqual(descr, actual_description)
-
     def test_assign_steam_info(self):
         """ Tests whether the function works given correct data. """
 
