@@ -21,8 +21,13 @@ class SteamApp:
 
     def find_app(self, origin, title=None, appid=None, region=None):
         """
-        Ensures that an app can be found on Steam by going through a list of
-        dictionaries and checking whether they have a given id/title.
+        Finds an app corresponding to a given title/id. Assigns the object
+        information corresponding to the apps.
+
+        Does so by calling helper methods which (roughly) do the following:
+        check if the title/id is in the list of all steam apps. If it is,
+        return json data about the app. Then, inspect this data to find
+        information about the app, and use it to set object attributes.
 
         :param origin: url to resource: where a list of games is located.
         :param title: title of an app that needs to be checked.
@@ -31,20 +36,21 @@ class SteamApp:
         """
 
         text = self._fetch_text(origin)
-        app_info = self._get_app_dict(text, title=title, appid=appid,
+        app_data = self._get_app_data(text, title=title, appid=appid,
                                       region=region)
+        self._assign_steam_info(app_data)
 
-        self.appid = app_info['appid'] if app_info else None
-        self.title = app_info['name'] if app_info else None
-
-    def assign_steam_info(self, region='uk'):
+    def _assign_steam_info(self, app_data=None):
         """ Retrieves and assigns information about an app to the object. """
 
-        steam_url = self._get_steam_app_url(region)
-        app_data = self._fetch_json(steam_url)
+        if not app_data:
+            return
+
+        # steam_url = self._get_steam_app_url(region)
+        # app_data = self._fetch_json(steam_url)
 
         # Field assignment
-        # self.appid = self._get_appid(app_data)
+        self.appid = self._get_appid(app_data)
         self.title = self._get_title(app_data)
         self.release_date = self._get_release_date(app_data)
         self.description = self._get_description(app_data)
@@ -63,17 +69,7 @@ class SteamApp:
             self.final_price = None
             self.discount = 0
 
-    def _get_steam_app_url(self, region):
-        """ Constructs an app's url. """
-
-        config = Config('steamCLI', 'resources.ini')
-        resource = config.get_value('SteamAPIs', 'appinfo') + str(self.appid)
-        resource_url = f'{resource}&cc={region}'
-
-        return resource_url
-
-    @staticmethod
-    def _calculate_discount(initial, current):
+    def _calculate_discount(self, initial, current):
         """
         Calculates the % difference between initial and current price.
 
@@ -91,6 +87,20 @@ class SteamApp:
 
         return int(round(percent, 0))
 
+    def _get_appid(self, json_data):
+        """
+        Finds app id in JSON data.
+
+        :param json_data: data about a steam app in a dict format.
+        :return: name of the app.
+        """
+
+        try:
+            appid = json_data['steam_appid']
+        except KeyError:
+            appid = None
+        return appid
+
     def _get_title(self, json_data):
         """
         Finds name in JSON data.
@@ -100,7 +110,7 @@ class SteamApp:
         """
 
         try:
-            title = json_data[str(self.appid)]['data']['name']
+            title = json_data['name']
         except KeyError:
             title = None
         return title
@@ -114,7 +124,7 @@ class SteamApp:
         """
 
         try:
-            date = json_data[str(self.appid)]['data']['release_date']['date']
+            date = json_data['release_date']['date']
         except KeyError:
             date = None
         return date
@@ -128,7 +138,7 @@ class SteamApp:
         """
 
         try:
-            meta = json_data[str(self.appid)]['data']['metacritic']['score']
+            meta = json_data['metacritic']['score']
         except KeyError:
             meta = None
         return meta
@@ -142,7 +152,7 @@ class SteamApp:
         """
 
         try:
-            desc = json_data[str(self.appid)]['data']['short_description']
+            desc = json_data['short_description']
         except KeyError:
             desc = None
         return desc
@@ -155,26 +165,10 @@ class SteamApp:
         """
 
         try:
-            price = json_data[str(self.appid)]['data']['price_overview']
+            price = json_data['price_overview']
         except KeyError:
             price = None
         return price
-
-    def _fetch_json(self, origin):
-        """
-        Extracts a JSON object from a given app link.
-
-        :param origin: link to a resource that is to be consumed.
-        """
-
-        response = requests.get(origin)
-        json_data = response.json()
-
-        # Steam informs us whether the game was found or not.
-        if not json_data[str(self.appid)]['success']:
-            raise requests.HTTPError("Resource not found")
-
-        return json_data
 
     @staticmethod
     def _fetch_text(origin):
@@ -192,8 +186,7 @@ class SteamApp:
         else:
             return response.text
 
-    @staticmethod
-    def _get_app_dict(json_text, title=None, appid=None, region=None):
+    def _get_app_data(self, json_text, title=None, appid=None, region=None):
         """
         Extracts dict in which app resides from JSON response by loading textual
         representation of JSON and applying private inner function to it over
@@ -203,7 +196,7 @@ class SteamApp:
         :return: dictionary that has the relevant information about an app.
         """
 
-        app_dict = []
+        app_dicts = []
 
         def _decode_dictionary(dictionary):
             """
@@ -216,17 +209,18 @@ class SteamApp:
             try:
                 if title:
                     if dictionary["name"].lower() == title.lower():
-                        app_dict.append(dictionary)
+                        app_dicts.append(dictionary)
                 else:
                     if dictionary["appid"] == appid:
-                        app_dict.append(dictionary)
+                        app_dicts.append(dictionary)
             except KeyError:
                 pass
             return dictionary
 
         json.loads(json_text, object_hook=_decode_dictionary)
+        json_data = self._choose_complete_json(app_dicts, region=region)
 
-        return app_dict[0] if app_dict else None
+        return json_data
 
     @staticmethod
     def _choose_complete_json(dicts, region=None):
@@ -261,5 +255,5 @@ class SteamApp:
                 response = requests.get(resource)
                 data = response.json()
                 if data[str(appid)]['success']:
-                    return data
+                    return data[str(appid)]['data']
         return None

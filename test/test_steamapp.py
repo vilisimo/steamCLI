@@ -11,6 +11,7 @@ from steamCLI.steamapp import SteamApp
 # Stubs that tests can use.
 RESOURCE = '{"applist": {"apps": {"app": [{"appid": 8,"name": "winui2"}]}}}'
 MOCK_DICT = {"appid": 8, "name": "winui2"}
+MOCK_DATA = {"8": {"success": True, "data": {}}}
 
 
 class SteamAppFetchTextAssignIDTests(unittest.TestCase):
@@ -42,97 +43,107 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertEqual(RESOURCE, actual)
         self.assertIn(mock.call(self.url), mock_get.call_args_list)
 
-    def test_get_app_dict_no_such_app(self):
+    @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
+    def test_get_app_data_no_such_app(self, mock_choose):
         """ Ensures that when nothing is found, None is returned. """
 
+        mock_choose.return_value = None
         self.app.title = "Test"
-        result = self.app._get_app_dict(RESOURCE)
+        result = self.app._get_app_data(RESOURCE)
 
         self.assertFalse(result)
+        mock_choose.assert_called_once()
 
-    def test_get_app_dict(self):
-        """ Ensures _get_app_dict() manages to find relevant dictionaries """
+    @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
+    def test_get_app_data(self, mock_choose):
+        """ Ensures _get_app_data() manages to find relevant dictionaries """
 
-        result = self.app._get_app_dict(RESOURCE, title=self.title)
+        mock_choose.return_value = MOCK_DATA
+        result = self.app._get_app_data(RESOURCE, title=self.title)
 
-        self.assertEqual(MOCK_DICT, result)
+        self.assertEqual(MOCK_DATA, result)
+        mock_choose.assert_called_once()
 
-    def test_get_app_dict_case_insensitive(self):
-        """ Ensure that _get_app_dict() is not case sensitive. """
+    @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
+    def test_get_app_data_case_insensitive(self, mock_choose):
+        """ Ensure that _get_app_data() is not case sensitive. """
 
-        result = self.app._get_app_dict(RESOURCE, title=self.title.upper())
+        mock_choose.return_value = MOCK_DATA
+        result = self.app._get_app_data(RESOURCE, title=self.title.upper())
 
-        self.assertEqual(MOCK_DICT, result)
+        self.assertEqual(MOCK_DATA, result)
+        mock_choose.assert_called_once()
 
-    def test_get_app_dict_with_id(self):
+    @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
+    def test_get_app_data_with_id(self, mock_choose):
         """
-        Ensure that _get_app_dict() works not only with title, but with app
+        Ensure that _get_app_data() works not only with title, but with app
         id as well.
         """
 
-        result = self.app._get_app_dict(RESOURCE, appid=self.appid)
+        mock_choose.return_value = MOCK_DATA
+        result = self.app._get_app_data(RESOURCE, appid=self.appid)
 
-        self.assertEqual(MOCK_DICT, result)
+        self.assertEqual(MOCK_DATA, result)
+        mock_choose.assert_called_once()
 
-    def test_get_app_dict_with_id_no_such_id(self):
+    @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
+    def test_get_app_dict_with_id_no_such_id(self, mock_choose):
         """ Ensure that when the ID is wrong, nothing is found. """
 
-        result = self.app._get_app_dict(RESOURCE, appid=0)
+        mock_choose.return_value = None
+        result = self.app._get_app_data(RESOURCE, appid=0)
 
         self.assertFalse(result)
+        mock_choose.assert_called_once()
 
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_text')
-    @mock.patch.object(SteamApp, '_get_app_dict')
-    def test_find_app_with_title(self, mock_get_dict, mock_fetch):
+    @mock.patch.object(SteamApp, '_fetch_text')
+    @mock.patch.object(SteamApp, '_get_app_data')
+    @mock.patch.object(SteamApp, '_assign_steam_info')
+    def test_find_app_with_title(self, mock_assign, mock_get_data, mock_fetch):
         """
         Ensures that an app can be found when a valid resource and a valid app
         title is provided.
         """
 
         mock_fetch.return_value = RESOURCE
-        mock_get_dict.return_value = MOCK_DICT
+        mock_get_data.return_value = MOCK_DATA
         self.app.find_app(self.url, title=self.title)
 
-        self.assertEqual(self.app.appid, MOCK_DICT['appid'])
+        mock_assign.assert_called_with(MOCK_DATA)
+        mock_get_data.assert_called_with(RESOURCE, appid=None,
+                                         region=None, title=self.title)
 
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_text')
-    @mock.patch.object(SteamApp, '_get_app_dict')
-    def test_find_app_with_id(self, mock_get_dict, mock_fetch):
+    @mock.patch.object(SteamApp, '_fetch_text')
+    @mock.patch.object(SteamApp, '_get_app_data')
+    @mock.patch.object(SteamApp, '_assign_steam_info')
+    def test_find_app_with_id(self, mock_assign, mock_get_data, mock_fetch):
         """
         Ensures that an app can be found when a valid resource and a valid
         app id is provided.
         """
 
         mock_fetch.return_value = RESOURCE
-        mock_get_dict.return_value = MOCK_DICT
+        mock_get_data.return_value = MOCK_DATA
         self.app.find_app(self.url, appid=self.appid)
 
-        self.assertEqual(self.app.title, MOCK_DICT['name'])
+        mock_assign.assert_called_with(MOCK_DATA)
+        mock_get_data.assert_called_with(RESOURCE, appid=self.appid,
+                                         region=None, title=None)
 
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_text')
-    @mock.patch.object(SteamApp, '_get_app_dict')
-    def test_find_app_no_dict_returned(self, mock_dict, mock_fetch):
+    @mock.patch.object(SteamApp, '_fetch_text')
+    @mock.patch.object(SteamApp, '_get_app_data')
+    @mock.patch.object(SteamApp, '_assign_steam_info')
+    def test_find_app_no_data(self, mock_assign, mock_get_data, mock_fetch):
         """ Ensures that ID is not found with an invalid resource. """
 
         mock_fetch.return_value = RESOURCE
-        mock_dict.return_value = None
+        mock_get_data.return_value = None
         self.app.find_app(self.url)
 
-        self.assertFalse(self.app.appid)
-        self.assertFalse(self.app.title)
-
-    # # In case there is a need to check it sometime later. Passes as of Dec 26.
-    # def test_real_deal(self):
-    #     """ Ensure everything works with a proper steam api. """
-    #
-    #     url = 'http://api.steampowered.com/ISteamApps/GetAppList/v0002/'
-    #     title = "DungeonUp"
-    #     app = SteamApp()
-    #     expected_id = 388620
-    #     app.find_app(url, title=title)
-    #     real_id = app.appid
-    #
-    #     self.assertEqual(expected_id, real_id)
+        mock_assign.assert_called_with(None)
+        mock_get_data.assert_called_with(RESOURCE, appid=None, region=None,
+                                         title=None)
 
     @mock.patch('steamCLI.steamapp.requests.get')
     @mock.patch('steamCLI.config.Config.get_value')
@@ -154,7 +165,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         # E.g.: http://store.steampowered.com/api/appdetails?appids=10
         app_d1 = {"1": {"success": False}}
         app_d2 = {"2": {"success": False}}
-        app_d3 = {"3": {"success": True}}
+        app_d3 = {"3": {"success": True, "data": {"test": {}}}}
         fake_r1 = mock.Mock()
         fake_r2 = mock.Mock()
         fake_r3 = mock.Mock()
@@ -168,7 +179,8 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         fake_r2.json.assert_called_once()
         fake_r3.json.assert_called_once()
         mock_config.assert_called()
-        self.assertEqual(app_d3, json_data)
+        # _choose_complete_json() returns only relevant data, hence keys.
+        self.assertEqual(app_d3["3"]["data"], json_data)
 
     @mock.patch('steamCLI.steamapp.requests.get')
     @mock.patch('steamCLI.config.Config.get_value')
@@ -189,8 +201,8 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         # Stub dictionary similar to what we get accessing individual apps
         # E.g.: http://store.steampowered.com/api/appdetails?appids=10
         app_d1 = {"1": {"success": False}}
-        app_d2 = {"2": {"success": True}}
-        app_d3 = {"3": {"success": True}}  # Should not reach this one.
+        app_d2 = {"2": {"success": True, "data": {"test": {}}}}  # Stop here
+        app_d3 = {"3": {"success": True, "data": {"test": {}}}}
         fake_r1 = mock.Mock()
         fake_r2 = mock.Mock()
         fake_r3 = mock.Mock()
@@ -204,7 +216,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         fake_r2.json.assert_called_once()
         fake_r3.json.assert_not_called()  # Does not reach this one
         mock_config.assert_called()
-        self.assertEqual(app_d2, json_data)
+        self.assertEqual(app_d2["2"]["data"], json_data)
 
     @mock.patch('steamCLI.steamapp.requests.get')
     @mock.patch('steamCLI.config.Config.get_value')
@@ -235,6 +247,18 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
 
         self.assertFalse(json_data)
 
+    # # In case there is a need to check it sometime later. Passes as of Dec 26.
+    # def test_real_deal(self):
+    #     """ Ensure everything works with a proper steam api. """
+    #
+    #     url = 'http://api.steampowered.com/ISteamApps/GetAppList/v0002/'
+    #     title = "DungeonUp"
+    #     app = SteamApp()
+    #     expected_id = 388620
+    #     app.find_app(url, title=title, region='uk')
+    #
+    #     self.assertEqual(expected_id, app.appid)
+
 
 class SteamAppAssignInfoTests(unittest.TestCase):
     """
@@ -248,8 +272,9 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         self.app = SteamApp()
         self.app.appid = self.id
 
-        self.response = {str(self.id): {'success': True, 'data': {
+        self.response = {
             'name': 'Test',
+            'steam_appid': 1,
             'release_date': {'coming_soon': False, 'date': '1 Nov, 2000'},
             'metacritic': {'score': 1},
             'short_description': 'Test description',
@@ -259,59 +284,32 @@ class SteamAppAssignInfoTests(unittest.TestCase):
                 'initial': 10.00,
                 'final': 5.00
             }
-        }}}
+        }
 
-    @mock.patch('steamCLI.config.Config.get_value')
-    def test_get_steam_app_url(self, mock_config):
-        """ Ensure a correct url is constructed depending on region. """
+    def test_get_appid(self):
+        """
+        Ensures that a appid can be extracted from a correctly formed dict.
+        """
 
-        mock_config.return_value = 'nevermind'
-        region = "au"
-        url = self.app._get_steam_app_url(region)
+        expected_appid = self.response['steam_appid']
+        actual_appid = self.app._get_appid(self.response)
 
-        mock_config.assert_called()
-        self.assertTrue(url.endswith(region))
+        self.assertEqual(expected_appid, actual_appid)
 
-    @mock.patch('steamCLI.steamapp.requests.get')
-    def test_fetch_json_no_resource(self, mock_get):
-        """ Ensures exception is raised if app is not found. """
-
-        fake_response = mock.Mock()
-        fake_response.json.return_value = {str(self.id): {"success": False}}
-
-        mock_get.return_value = fake_response
-        with self.assertRaises(HTTPError):
-            self.app._fetch_json(self.url)
-
-        self.assertIn(mock.call(self.url), mock_get.call_args_list)
-
-    @mock.patch('steamCLI.steamapp.requests.get')
-    def test_fetch_json_resource_exists(self, mock_get):
-        """ Ensures correct json is returned when a resource can be accessed """
-
-        fake_response = mock.Mock()
-        fake_response.json.return_value = self.response
-        mock_get.return_value = fake_response
-        json_data = self.app._fetch_json(self.url)
-
-        self.assertEqual(self.response, json_data)
-        self.assertIn(mock.call(self.url), mock_get.call_args_list)
-
-    def test_get_name(self):
+    def test_get_title(self):
         """
         Ensures that a name can be extracted from a correctly formed dict.
         """
 
-        expected_name = self.response[str(self.id)]['data']['name']
-        actual_name = self.app._get_title(self.response)
+        expected_title = self.response['name']
+        actual_title = self.app._get_title(self.response)
 
-        self.assertEqual(expected_name, actual_name)
+        self.assertEqual(expected_title, actual_title)
 
     def test_get_release_date(self):
         """ Ensures the release date of an app is extracted. """
 
-        expected_date = self.response[str(self.id)]['data']['release_date'][
-            'date']
+        expected_date = self.response['release_date']['date']
         actual_date = self.app._get_release_date(self.response)
 
         self.assertEqual(expected_date, actual_date)
@@ -319,20 +317,15 @@ class SteamAppAssignInfoTests(unittest.TestCase):
     def test_get_metacritic_score(self):
         """ Ensures that metacritic score can be extracted. """
 
-        score = self.response[str(self.id)]['data']['metacritic']['score']
+        score = self.response['metacritic']['score']
         metacritic = self.app._get_metascore(self.response)
 
         self.assertEqual(score, metacritic)
 
-    # Steam down, need to check this out once it recovers:
-    # json_data = self.app._fetch_json('http://store.steampowered.com/api/appdetails?appids=10')
-    # metacritic = self.app._get_metacritic_score(json_data)
-    # print(metacritic)
-
     def test_get_price_overview(self):
         """ Ensures all relevant data is extracted from price overview. """
 
-        expected = self.response[str(self.id)]['data']['price_overview']
+        expected = self.response['price_overview']
         actual = self.app._get_price_overview(self.response)
 
         self.assertEqual(expected, actual)
@@ -340,118 +333,15 @@ class SteamAppAssignInfoTests(unittest.TestCase):
     def test_get_description(self):
         """ Ensures that description can be extracted. """
 
-        descr = self.response[str(self.id)]['data']['short_description']
+        descr = self.response['short_description']
         actual_description = self.app._get_description(self.response)
 
         self.assertEqual(descr, actual_description)
 
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
-    def test_assign_steam_info_title(self, mock_fetch):
-        """ Ensures assign_json_info() assigns title. """
-
-        mock_fetch.return_value = self.response
-        self.app.assign_steam_info()
-        expected_title = self.response[str(self.id)]['data']['name']
-
-        self.assertEqual(expected_title, self.app.title)
-
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
-    def test_assign_steam_info_release_date(self, mock_fetch):
-        """ Ensures assign_json_info() assigns a release date. """
-
-        mock_fetch.return_value = self.response
-        self.app.assign_steam_info()
-        expected_date = self.response[str(self.id)]['data']['release_date'][
-            'date']
-
-        self.assertEqual(expected_date, self.app.release_date)
-
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
-    def test_assign_steam_info_metacritic(self, mock_fetch):
-        """ Ensures assign_info() assigns metacritic score. """
-
-        mock_fetch.return_value = self.response
-        self.app.assign_steam_info()
-        score = self.response[str(self.id)]['data']['metacritic']['score']
-
-        self.assertEqual(score, self.app.metascore)
-
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
-    def test_assign_steam_info_description(self, mock_fetch):
-        """ Ensures assign_info() assigns description. """
-
-        mock_fetch.return_value = self.response
-        self.app.assign_steam_info()
-        desc = self.response[str(self.id)]['data']['short_description']
-
-        self.assertEqual(desc, self.app.description)
-
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
-    def test_assign_steam_info_initial_price(self, mock_fetch):
-        """ Ensures assign_info() assigns initial price. """
-
-        mock_fetch.return_value = self.response
-        self.app.assign_steam_info()
-        price = self.response[str(self.id)]['data']['price_overview']['initial']
-
-        self.assertEqual(price, self.app.initial_price)
-
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
-    def test_assign_steam_info_final_price(self, mock_fetch):
-        """ Ensures assign_info() assigns final price. """
-
-        mock_fetch.return_value = self.response
-        self.app.assign_steam_info()
-        price = self.response[str(self.id)]['data']['price_overview']['final']
-
-        self.assertEqual(price, self.app.final_price)
-
-    # # Not needed at the moment - discount is calculated by taking prices.
-    # @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
-    # def test_assign_json_info_discount(self, mock_fetch):
-    #     """ Ensures assign_info() assigns price discount. """
-
-    #     mock_fetch.return_value = self.response
-    #     self.app.assign_json_info()
-    #     discount = self.response[str(self.id)]['data']['price_overview'][
-    #         'discount_percent']
-
-    #     self.assertEqual(discount, self.app.discount)
-
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
-    def test_assign_steam_info_currency(self, mock_fetch):
-        """ Ensures assign_info() assigns currency. """
-
-        mock_fetch.return_value = self.response
-        self.app.assign_steam_info()
-        cur = self.response[str(self.id)]['data']['price_overview']['currency']
-
-        self.assertEqual(cur, self.app.currency)
-
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
-    def test_assign_steam_info_currency_no_price_overview(self, mock_fetch):
-        """
-        Ensure that when the price is not available, price_overview dict is
-        not given any values, and hence anything else is not given values, too.
-        """
-
-        self.response[str(self.id)]['data']['price_overview'] = None
-        mock_fetch.return_value = self.response
-        self.app.assign_steam_info()
-
-        self.assertFalse(self.app.currency)
-        self.assertFalse(self.app.initial_price)
-        self.assertFalse(self.app.final_price)
-        self.assertFalse(self.app.discount)
-
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_json')
-    @mock.patch('steamCLI.steamapp.SteamApp._get_steam_app_url')
-    def test_assign_steam_info(self, mock_get_url, mock_fetch):
+    def test_assign_steam_info(self):
         """ Tests whether the function works given correct data. """
 
-        mock_get_url.return_value = 'does not matter'
-        mock_fetch.return_value = self.response
-        self.app.assign_steam_info()
+        self.app._assign_steam_info(self.response)
 
         self.assertTrue(self.app.release_date)
         self.assertTrue(self.app.description)
@@ -460,6 +350,42 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         self.assertTrue(self.app.initial_price)
         self.assertTrue(self.app.final_price)
         self.assertTrue(self.app.discount)
+
+    def test_assign_steam_info_appid(self):
+        """ Ensures _assign_json_info() assigns appid. """
+
+        self.app._assign_steam_info(self.response)
+        expected_appid = self.response['steam_appid']
+        expected_title = self.response['name']
+        score = self.response['metacritic']['score']
+        desc = self.response['short_description']
+        price = self.response['price_overview']['initial']
+        fprice = self.response['price_overview']['final']
+        cur = self.response['price_overview']['currency']
+        expected_date = self.response['release_date']['date']
+
+        self.assertEqual(expected_appid, self.app.appid)
+        self.assertEqual(expected_title, self.app.title)
+        self.assertEqual(score, self.app.metascore)
+        self.assertEqual(desc, self.app.description)
+        self.assertEqual(price, self.app.initial_price)
+        self.assertEqual(fprice, self.app.final_price)
+        self.assertEqual(cur, self.app.currency)
+        self.assertEqual(expected_date, self.app.release_date)
+
+    def test_assign_steam_info_currency_no_price_overview(self):
+        """
+        Ensure that when the price is not available, price_overview dict is
+        not given any values, and hence anything else is not given values, too.
+        """
+
+        self.response['price_overview'] = None
+        self.app._assign_steam_info(self.response)
+
+        self.assertFalse(self.app.currency)
+        self.assertFalse(self.app.initial_price)
+        self.assertFalse(self.app.final_price)
+        self.assertFalse(self.app.discount)
 
 
 class HelperFunctionsTests(unittest.TestCase):
