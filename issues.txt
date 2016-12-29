@@ -1,1 +1,17 @@
 -some of the games have price_in_cents (war of the roses)
+
+steamapp tests:
+- config -> change to mock objects
+- mock.patch(steamCLI.steamapp.SteamApp...) -> mock.patch.object(SteamApp,
+method)
+
+- assertRaises: some tests add side effect to response.get directly, instead
+of returning a mock object with an error inside
+
+-_get_app_html and _fetch_text are basically the same, except for cookies.
+Could merge them. But then caller would have to know a looooot when calling
+various methods.
+
+-a lot of private methods have config in it. Perhaps it would be better to
+remove it, move those to optional arguments and have the caller deal with the
+ logic. This way, methods would be a bit more general.
