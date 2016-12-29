@@ -6,6 +6,7 @@ import unittest
 from unittest import mock
 from requests import HTTPError
 
+import steamCLI.config
 from steamCLI.steamapp import SteamApp
 
 # Stubs that tests can use.
@@ -482,3 +483,225 @@ class HelperFunctionsTests(unittest.TestCase):
         percent = self.app._calculate_discount(initial, current)
 
         self.assertEqual(expected, percent)
+
+
+class ScrapingTests(unittest.TestCase):
+    """
+    Test suite to make sure that web scraping manages to get appropriate
+    values (or at least fail gracefully).
+    """
+
+    def setUp(self):
+        self.app = SteamApp()
+        self.app.appid = 1
+        self.url = 'http://www.example.com/'
+
+    def test_get_app_html_no_url(self):
+        """ Ensure that when appid is not set, nothing is changed. """
+
+        self.url = None
+        self.app._get_app_html(self.url)
+
+        self.assertFalse(self.app.recent_count)
+        self.assertFalse(self.app.recent_percent)
+        self.assertFalse(self.app.overall_count)
+        self.assertFalse(self.app.overall_percent)
+
+    @mock.patch('steamCLI.steamapp.Config', autospec=True)
+    @mock.patch('steamCLI.steamapp.requests')
+    def test_get_app_html_params_requests(self, req, m_config):
+        """ Ensure that requests.get() is called with correct parameters. """
+
+        age_key = 'birthtime'
+        age_val = 'someval'
+        m_config.return_value.get_value.side_effect = [age_key, age_val]
+        req.get.return_value = mock.Mock()
+        self.app._get_app_html(self.url)
+
+        req.get.assert_called_with(self.url, {age_key: age_val})
+
+    @mock.patch('steamCLI.steamapp.Config', autospec=True)
+    @mock.patch('steamCLI.steamapp.requests.get')
+    def test_get_app_html_requests_exception(self, get, m_config):
+        """
+        Ensure that exception is thrown when the app page does not exist.
+        """
+
+        m_config.return_value.get_value.side_effect = ['a', 'b']
+        mocked_response = mock.Mock()
+        mocked_response.raise_for_status.side_effect = HTTPError()
+        get.return_value = mocked_response
+
+        with self.assertRaises(HTTPError):
+            self.app._get_app_html(self.url)
+        m_config.assert_called()
+        get.assert_called()
+
+    @mock.patch('steamCLI.steamapp.Config', autospec=True)
+    @mock.patch('steamCLI.steamapp.requests.get')
+    def test_get_app_html_return_value(self, get, m_config):
+        """ Ensures that when everything is ok, string object is returned. """
+
+        text = "pretend this is html"
+        m_config.return_value.get_value.side_effect = ['a', 'b']
+        mocked_response = mock.Mock()
+        mocked_response.text = text
+        get.return_value = mocked_response
+        actual_text = self.app._get_app_html(self.url)
+
+        self.assertEqual(text, actual_text)
+        m_config.assert_called()
+        get.assert_called()
+
+    def test_construct_app_steam_page_url_no_url(self):
+        """ When there is no appid, url cannot be constructed. """
+
+        self.app.appid = None
+        url = self.app._construct_app_url()
+
+        self.assertFalse(url)
+
+    @mock.patch('steamCLI.steamapp.Config', autospec=True)
+    def test_construct_app_steam_page_url(self, mock_config):
+        """
+        When there is app id, there should be no problems constructing it.
+        """
+
+        initial_url = 'some/url/[id]/'
+        mock_config.return_value.get_value.return_value = initial_url
+        expected = initial_url.replace('[id]', '1')
+        url = self.app._construct_app_url()
+
+        self.assertEqual(expected, url)
+        mock_config.return_value.get_value.assert_called()
+
+    def test_get_review_text_no_html(self):
+        """
+        Ensures that undefined html does not break the function.
+        """
+
+        html = None
+        reviews = self.app._get_review_text(html)
+
+        self.assertFalse(reviews)
+
+    @mock.patch('steamCLI.steamapp.Config', autospec=True)
+    def test_get_review_text_one_match(self, mock_config):
+        """
+        Ensures a review text can be extracted from BeautifulSoup.ResultSet.
+        Checks what happens when only one match is found (i.e, overall score).
+        """
+
+        expected_text = 'get this'
+        expected_reviews = [expected_text,]
+        element = 'div'
+        class_ = 'test'
+        mock_config.return_value.get_value.return_value = [element, class_]
+
+        html = f'''<html>
+                     <{element} class="{class_}">
+                       {expected_text}
+                     </{element}>
+                     <{element} class="test2">
+                       not this
+                     </{element}>
+                   </html>'''
+        reviews = self.app._get_review_text(html)
+
+        self.assertEqual(expected_reviews, reviews)
+
+    @mock.patch('steamCLI.steamapp.Config', autospec=True)
+    def test_get_review_text_two_matches(self, mock_config):
+        """
+        Ensures a review text can be extracted from BeautifulSoup.ResultSet.
+        Checks what happens when two matches are found (i.e., overall and
+        recent scores).
+        """
+
+        expected_text = 'get this'
+        other_text = 'and this'
+        expected_reviews = [expected_text, other_text]
+        element = 'div'
+        class_ = 'test'
+        mock_config.return_value.get_value.return_value = [element, class_]
+
+        html = f'''<html>
+                     <{element} class="{class_}">
+                       {expected_text}
+                     </{element}>
+                     <{element} class="{class_}">
+                       {other_text}
+                     </{element}>
+                     <{element} class="test2">
+                       not this
+                     </{element}>
+                   </html>'''
+        reviews = self.app._get_review_text(html)
+
+        self.assertEqual(expected_reviews, reviews)
+
+    @mock.patch('steamCLI.steamapp.Config', autospec=True)
+    def test_get_review_text_no_matches(self, mock_config):
+        """
+        Makes sure that when no matches are found, an empty review list is
+        returned.
+        """
+
+        element = 'div'
+        class_ = 'test'
+        mock_config.return_value.get_value.return_value = [element, class_]
+
+        html = f'''<html>
+                     <span class="{class_}">
+                       no findy
+                     </span>
+                     <{element} class="irrelevant">
+                       no findy
+                     </{element}>
+                   </html>'''
+        reviews = self.app._get_review_text(html)
+
+        self.assertFalse(reviews)
+
+    def test_get_app_scores_no_reviews(self):
+        """
+        Ensure that when no review lines are given function does not break.
+        """
+
+        reviews = None
+        scores = self.app._get_app_scores(reviews)
+
+        self.assertFalse(scores)
+
+    def test_get_app_scores_one_review(self):
+        """
+        Ensure that with one review line, correct app info is extracted.
+        """
+
+        count = '16,855'
+        percent = '55%'
+        reviews = [f'test test {count} something else {percent}']
+        scores = self.app._get_app_scores(reviews)
+
+        self.assertEqual(count, scores[0][0])
+        self.assertEqual(percent, scores[0][1])
+
+    def test_get_app_scores_two_reviews(self):
+        """
+        Ensure that with two review lines, correct app info is extracted.
+        """
+
+        count1 = '16,855'
+        percent1 = '55%'
+        count2 = '55,543'
+        percent2 = '51%'
+        line1 = f'test test {count1} something else {percent1}'
+        line2 = f'test test {count2} something else {percent2}'
+        reviews = [line1, line2]
+        scores = self.app._get_app_scores(reviews)
+
+        self.assertEqual(count1, scores[0][0])
+        self.assertEqual(percent1, scores[0][1])
+        self.assertEqual(count2, scores[1][0])
+        self.assertEqual(percent2, scores[1][1])
+

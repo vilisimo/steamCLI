@@ -1,5 +1,8 @@
 import requests
 import json
+import re
+
+from bs4 import BeautifulSoup
 
 from steamCLI.config import Config
 
@@ -14,10 +17,13 @@ class SteamApp:
         # Key information
         self.title, self.appid = [None]*2
         # Additional game information
-        self.release_date, self.description, self.metacritic = [None] * 3
+        self.release_date, self.description, self.metacritic = [None]*3
         # Pricing information
         self.currency, self.initial_price, self.final_price = [None]*3
         self.discount = None
+        # Review information
+        self.recent_count, self.recent_percent = [None]*2
+        self.overall_count, self.overall_percent = [None]*2
 
     def find_app(self, origin, title=None, appid=None, region=None):
         """
@@ -39,6 +45,111 @@ class SteamApp:
         app_data = self._get_app_data(text, title=title, appid=appid,
                                       region=region)
         self._assign_steam_info(app_data)
+
+    # def scrape_app_page(self):
+    #     url = self._construct_app_url()
+    #     html = self._get_app_html(url)
+    #     reviews = _get_review_text(html)
+    #     scores = _get_app_scores(reviews)
+
+    def _get_app_scores(self, reviews):
+        """
+        Extracts scores from review line(s).
+
+        :param reviews: list of review lines.
+        :return: list of score tuples:
+                    [0]: overall reviews (count, percentage)
+                    [1]: recent reviews (count, percentage)
+        """
+
+        scores = list()
+
+        if not reviews:
+            return scores
+
+        while reviews:
+            line = reviews.pop(0)
+            tokens = line.split()
+            # Usually they are at positions 1 and 4, but why take chances.
+            # For different sep., may need re.sub(r'[^\w\s]', '', t) or similar
+            count = [t for t in tokens if t.replace(',', '').isdigit()][0]
+            percent = [t for t in tokens if t.endswith('%')][0]
+            scores.append((count, percent))
+
+        return scores
+
+    def _get_review_text(self, html):
+        """
+        Extracts recent/overall review text (lines) from html.
+
+        First, we get the elements and their classes, so we know what to
+        search for. Then, we comb that document to find all elements that
+        match our criteria. This results in a list of ResultSet objects.
+        Each of these objects has children, over which we can iterate (e.g.,
+        by calling next(iterable) or simple for loops). Since reviews have a
+        lot of whitespace applied to them, we need to remove it. Once we do
+        it, we can return a list of review lines, so that it can be processed
+        further or used as is.
+
+        :param html: html of the page to be parsed.
+        :return: list of review lines.
+        """
+
+        reviews = list()
+
+        if not html:
+            return reviews
+
+        config = Config('steamCLI', 'resources.ini')
+        element = config.get_value('SteamWebsite', 'reviews_element')
+        classes = config.get_value('SteamWebsite', 'reviews_class')
+        app_page = BeautifulSoup(html, "html.parser")
+        results = app_page.findAll(element, {'class': classes})
+
+        # Results might be empty. This is fine for us. It means app does
+        # not have any reviews.
+        while results:
+            result = results.pop(0)
+            review = ''.join(child.strip() for child in result.children)
+            reviews.append(review)
+
+        return reviews
+
+    def _get_app_html(self, url):
+        """
+        Scrapes review scores from the app's Steam page.
+
+        :param url: url which will be used to retrieve app html.
+        :return: html (string) of the whole page.
+        """
+
+        if not url:
+            return ''
+
+        config = Config('steamCLI', 'resources.ini')
+        age_key = config.get_value('SteamWebsite', 'age_key')
+        age_value = config.get_value('SteamWebsite', 'age_value')
+        age_cookie = {age_key: age_value}
+
+        try:
+            response = requests.get(url, age_cookie)
+            response.raise_for_status()
+        except requests.HTTPError:
+            raise requests.HTTPError("App page not found.")
+        else:
+            return response.text
+
+    def _construct_app_url(self):
+        """ Constructs steam page URL that is used for web scraping. """
+
+        if not self.appid:
+            return ''
+
+        config = Config('steamCLI', 'resources.ini')
+        app_url = config.get_value('SteamWebsite', 'app_page')
+        url = app_url.replace('[id]', str(self.appid))
+
+        return url
 
     def _assign_steam_info(self, app_data=None):
         """ Retrieves and assigns information about an app to the object. """
@@ -136,7 +247,7 @@ class SteamApp:
             response = requests.get(origin)
             response.raise_for_status()
         except requests.HTTPError:
-            raise requests.HTTPError("Resource not found")
+            raise requests.HTTPError("Resource not found.")
         else:
             return response.text
 
