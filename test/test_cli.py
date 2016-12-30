@@ -25,6 +25,7 @@ class ParserTests(unittest.TestCase):
         title_help = "app title"
         id_help = "app id"
         desc_help = "app description"
+        reviews_help = "reviews"
         region_help = "region"
 
         mock_config.get_value.side_effect = [
@@ -34,6 +35,7 @@ class ParserTests(unittest.TestCase):
             title_help,
             id_help,
             desc_help,
+            reviews_help,
             region_help,
         ]
 
@@ -107,3 +109,14 @@ class ParserTests(unittest.TestCase):
         args = self.parser.parse_args(['-t'])
 
         self.assertFalse(args.description)
+
+    def test_review_scores_flag(self):
+        """ Ensure description is set either to true or false if -d is used. """
+
+        args = self.parser.parse_args(['-ts'])
+
+        self.assertTrue(args.scores)
+
+        args = self.parser.parse_args(['-t'])
+
+        self.assertFalse(args.scores)
