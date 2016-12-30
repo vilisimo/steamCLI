@@ -518,7 +518,7 @@ class ScrapingTests(unittest.TestCase):
         req.get.return_value = mock.Mock()
         self.app._get_app_html(self.url)
 
-        req.get.assert_called_with(self.url, {age_key: age_val})
+        req.get.assert_called_with(self.url, cookies={age_key: age_val})
 
     @mock.patch('steamCLI.steamapp.Config', autospec=True)
     @mock.patch('steamCLI.steamapp.requests.get')
@@ -620,7 +620,9 @@ class ScrapingTests(unittest.TestCase):
 
         expected_text = 'get this'
         other_text = 'and this'
-        expected_reviews = [expected_text, other_text]
+        # As recent reviews are the first ones on Steam page, we want to
+        # ensure they are shown last (personal preference)
+        expected_reviews = [other_text, expected_text]
         element = 'div'
         class_ = 'test'
         mock_config.return_value.get_value.return_value = [element, class_]
@@ -705,3 +707,68 @@ class ScrapingTests(unittest.TestCase):
         self.assertEqual(count2, scores[1][0])
         self.assertEqual(percent2, scores[1][1])
 
+    @mock.patch.object(SteamApp, '_construct_app_url')
+    def test_scrape_page_no_appid(self, mock_construct):
+        """ Ensures scraping does not begin when no app id is provided. """
+
+        self.app.appid = None
+        self.app.scrape_app_page()
+        mock_construct.assert_not_called()
+
+    @mock.patch.object(SteamApp, '_construct_app_url')  # a
+    @mock.patch.object(SteamApp, '_get_app_html')  # b
+    @mock.patch.object(SteamApp, '_get_review_text')  # c
+    @mock.patch.object(SteamApp, '_get_app_scores')
+    def test_scrape_page_two_reviews(self, mock_get_scores, c, b, a):
+        """
+        Ensures scrape page assigns review scores when two reviews are provided.
+        """
+
+        o_count = '1'
+        o_percent = '22%'
+        r_count = '1'
+        r_percent = '45%'
+        mock_get_scores.return_value = [(o_count, o_percent),
+                                        (r_count, r_percent)]
+        self.app.scrape_app_page()
+
+        self.assertEqual(o_count, self.app.overall_count)
+        self.assertEqual(o_percent, self.app.overall_percent)
+        self.assertEqual(r_count, self.app.recent_count)
+        self.assertEqual(r_percent, self.app.recent_percent)
+
+    @mock.patch.object(SteamApp, '_construct_app_url')  # a
+    @mock.patch.object(SteamApp, '_get_app_html')  # b
+    @mock.patch.object(SteamApp, '_get_review_text')  # c
+    @mock.patch.object(SteamApp, '_get_app_scores')
+    def test_scrape_page_one_review(self, mock_get_scores, c, b, a):
+        """
+        Ensures scrape page assigns review scores when one review is provided.
+        """
+
+        o_count = '1'
+        o_percent = '22%'
+        mock_get_scores.return_value = [(o_count, o_percent), ]
+        self.app.scrape_app_page()
+
+        self.assertEqual(o_count, self.app.overall_count)
+        self.assertEqual(o_percent, self.app.overall_percent)
+        self.assertFalse(self.app.recent_count)
+        self.assertFalse(self.app.recent_percent)
+
+    @mock.patch.object(SteamApp, '_construct_app_url')  # a
+    @mock.patch.object(SteamApp, '_get_app_html')  # b
+    @mock.patch.object(SteamApp, '_get_review_text')  # c
+    @mock.patch.object(SteamApp, '_get_app_scores')
+    def test_scrape_page_no_reviews(self, mock_get_scores, c, b, a):
+        """
+        Ensures scrape page assigns review scores when one review is provided.
+        """
+
+        mock_get_scores.return_value = list()
+        self.app.scrape_app_page()
+
+        self.assertFalse(self.app.overall_count)
+        self.assertFalse(self.app.overall_percent)
+        self.assertFalse(self.app.recent_count)
+        self.assertFalse(self.app.recent_percent)

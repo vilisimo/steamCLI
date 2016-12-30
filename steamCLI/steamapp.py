@@ -1,6 +1,5 @@
 import requests
 import json
-import re
 
 from bs4 import BeautifulSoup
 
@@ -22,8 +21,8 @@ class SteamApp:
         self.currency, self.initial_price, self.final_price = [None]*3
         self.discount = None
         # Review information
-        self.recent_count, self.recent_percent = [None]*2
         self.overall_count, self.overall_percent = [None]*2
+        self.recent_count, self.recent_percent = [None]*2
 
     def find_app(self, origin, title=None, appid=None, region=None):
         """
@@ -46,11 +45,28 @@ class SteamApp:
                                       region=region)
         self._assign_steam_info(app_data)
 
-    # def scrape_app_page(self):
-    #     url = self._construct_app_url()
-    #     html = self._get_app_html(url)
-    #     reviews = _get_review_text(html)
-    #     scores = _get_app_scores(reviews)
+    def scrape_app_page(self):
+        """
+        Scrapes app page for information on reviews and how many of them were
+        positive.
+        """
+
+        if not self.appid:
+            return
+
+        url = self._construct_app_url()
+        html = self._get_app_html(url)
+        reviews = self._get_review_text(html)
+        scores = self._get_app_scores(reviews)
+
+        if scores:
+            overall = scores[0]
+            self.overall_count = overall[0]
+            self.overall_percent = overall[1]
+        if len(scores) > 1:
+            recent = scores[1]
+            self.recent_count = recent[0]
+            self.recent_percent = recent[1]
 
     def _get_app_scores(self, reviews):
         """
@@ -109,7 +125,7 @@ class SteamApp:
         # Results might be empty. This is fine for us. It means app does
         # not have any reviews.
         while results:
-            result = results.pop(0)
+            result = results.pop()  # This way recent is last.
             review = ''.join(child.strip() for child in result.children)
             reviews.append(review)
 
@@ -132,7 +148,7 @@ class SteamApp:
         age_cookie = {age_key: age_value}
 
         try:
-            response = requests.get(url, age_cookie)
+            response = requests.get(url, cookies=age_cookie)
             response.raise_for_status()
         except requests.HTTPError:
             raise requests.HTTPError("App page not found.")
@@ -321,4 +337,5 @@ class SteamApp:
                 data = response.json()
                 if data[str(appid)]['success']:
                     return data[str(appid)]['data']
+
         return None

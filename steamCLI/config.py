@@ -3,6 +3,7 @@ import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 class Config:
     """
     Responsible for actions on .ini files in which settings are stored.
