@@ -41,8 +41,8 @@ class SteamApp:
         """
 
         text = self._fetch_text(origin)
-        app_data = self._get_app_data(text, title=title, appid=appid,
-                                      region=region)
+        app_data = self._download_app_data(text, title=title, appid=appid,
+                                           region=region)
         self._assign_steam_info(app_data)
 
     def scrape_app_page(self):
@@ -55,9 +55,9 @@ class SteamApp:
             return
 
         url = self._construct_app_url()
-        html = self._get_app_html(url)
-        reviews = self._get_review_text(html)
-        scores = self._get_app_scores(reviews)
+        html = self._download_app_html(url)
+        reviews = self._extract_review_text(html)
+        scores = self._extract_app_scores(reviews)
 
         if scores:
             overall = scores[0]
@@ -68,7 +68,7 @@ class SteamApp:
             self.recent_count = recent[0]
             self.recent_percent = recent[1]
 
-    def _get_app_scores(self, reviews):
+    def _extract_app_scores(self, reviews):
         """
         Extracts scores from review line(s).
 
@@ -94,7 +94,7 @@ class SteamApp:
 
         return scores
 
-    def _get_review_text(self, html):
+    def _extract_review_text(self, html):
         """
         Extracts recent/overall review text (lines) from html.
 
@@ -131,7 +131,7 @@ class SteamApp:
 
         return reviews
 
-    def _get_app_html(self, url):
+    def _download_app_html(self, url):
         """
         Scrapes review scores from the app's Steam page.
 
@@ -267,7 +267,7 @@ class SteamApp:
         else:
             return response.text
 
-    def _get_app_data(self, json_text, title=None, appid=None, region=None):
+    def _download_app_data(self, json_text, title=None, appid=None, region=None):
         """
         Extracts dict in which app resides from JSON response by loading textual
         representation of JSON and applying private inner function to it over

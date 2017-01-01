@@ -12,6 +12,7 @@ TRANSFORMATIONS = {
 
 WHITELIST = set('abcdefghijklmnopqrstuvwxy0123456789')
 
+
 def sanitize_title(title):
     """
     Sanitizes input so that it doesn't can be submitted to Is There Any Deal.

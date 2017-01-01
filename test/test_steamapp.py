@@ -6,7 +6,6 @@ import unittest
 from unittest import mock
 from requests import HTTPError
 
-import steamCLI.config
 from steamCLI.steamapp import SteamApp
 
 # Stubs that tests can use.
@@ -45,45 +44,47 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertIn(mock.call(self.url), mock_get.call_args_list)
 
     @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
-    def test_get_app_data_no_such_app(self, mock_choose):
+    def test_download_app_data_no_such_app(self, mock_choose):
         """ Ensures that when nothing is found, None is returned. """
 
         mock_choose.return_value = None
         self.app.title = "Test"
-        result = self.app._get_app_data(RESOURCE)
+        result = self.app._download_app_data(RESOURCE)
 
         self.assertFalse(result)
         mock_choose.assert_called_once()
 
     @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
-    def test_get_app_data(self, mock_choose):
-        """ Ensures _get_app_data() manages to find relevant dictionaries """
+    def test_download_app_data(self, mock_choose):
+        """
+        Ensures _download_app_data() manages to find relevant dictionaries.
+        """
 
         mock_choose.return_value = MOCK_DATA
-        result = self.app._get_app_data(RESOURCE, title=self.title)
+        result = self.app._download_app_data(RESOURCE, title=self.title)
 
         self.assertEqual(MOCK_DATA, result)
         mock_choose.assert_called_once()
 
     @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
-    def test_get_app_data_case_insensitive(self, mock_choose):
-        """ Ensure that _get_app_data() is not case sensitive. """
+    def test_download_app_data_case_insensitive(self, mock_choose):
+        """ Ensure that _download_app_data() is not case sensitive. """
 
         mock_choose.return_value = MOCK_DATA
-        result = self.app._get_app_data(RESOURCE, title=self.title.upper())
+        result = self.app._download_app_data(RESOURCE, title=self.title.upper())
 
         self.assertEqual(MOCK_DATA, result)
         mock_choose.assert_called_once()
 
     @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
-    def test_get_app_data_with_id(self, mock_choose):
+    def test_download_app_data_with_id(self, mock_choose):
         """
-        Ensure that _get_app_data() works not only with title, but with app
-        id as well.
+        Ensure that _download_app_data() works not only with title, but with
+        app id as well.
         """
 
         mock_choose.return_value = MOCK_DATA
-        result = self.app._get_app_data(RESOURCE, appid=self.appid)
+        result = self.app._download_app_data(RESOURCE, appid=self.appid)
 
         self.assertEqual(MOCK_DATA, result)
         mock_choose.assert_called_once()
@@ -93,13 +94,13 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         """ Ensure that when the ID is wrong, nothing is found. """
 
         mock_choose.return_value = None
-        result = self.app._get_app_data(RESOURCE, appid=0)
+        result = self.app._download_app_data(RESOURCE, appid=0)
 
         self.assertFalse(result)
         mock_choose.assert_called_once()
 
     @mock.patch.object(SteamApp, '_fetch_text')
-    @mock.patch.object(SteamApp, '_get_app_data')
+    @mock.patch.object(SteamApp, '_download_app_data')
     @mock.patch.object(SteamApp, '_assign_steam_info')
     def test_find_app_with_title(self, mock_assign, mock_get_data, mock_fetch):
         """
@@ -116,7 +117,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
                                          region=None, title=self.title)
 
     @mock.patch.object(SteamApp, '_fetch_text')
-    @mock.patch.object(SteamApp, '_get_app_data')
+    @mock.patch.object(SteamApp, '_download_app_data')
     @mock.patch.object(SteamApp, '_assign_steam_info')
     def test_find_app_with_id(self, mock_assign, mock_get_data, mock_fetch):
         """
@@ -133,7 +134,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
                                          region=None, title=None)
 
     @mock.patch.object(SteamApp, '_fetch_text')
-    @mock.patch.object(SteamApp, '_get_app_data')
+    @mock.patch.object(SteamApp, '_download_app_data')
     @mock.patch.object(SteamApp, '_assign_steam_info')
     def test_find_app_no_data(self, mock_assign, mock_get_data, mock_fetch):
         """ Ensures that ID is not found with an invalid resource. """
@@ -264,7 +265,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
 class SteamAppAssignInfoTests(unittest.TestCase):
     """
     Tests related to functionality necessary for assignment of values to
-    various fields, such as title, price, metacritic info, etc.
+    various fields, such as title, price, metacritic score info, etc.
     """
 
     def setUp(self):
@@ -496,11 +497,11 @@ class ScrapingTests(unittest.TestCase):
         self.app.appid = 1
         self.url = 'http://www.example.com/'
 
-    def test_get_app_html_no_url(self):
+    def test_download_app_html_no_url(self):
         """ Ensure that when appid is not set, nothing is changed. """
 
         self.url = None
-        self.app._get_app_html(self.url)
+        self.app._download_app_html(self.url)
 
         self.assertFalse(self.app.recent_count)
         self.assertFalse(self.app.recent_percent)
@@ -509,20 +510,20 @@ class ScrapingTests(unittest.TestCase):
 
     @mock.patch('steamCLI.steamapp.Config', autospec=True)
     @mock.patch('steamCLI.steamapp.requests')
-    def test_get_app_html_params_requests(self, req, m_config):
+    def test_download_app_html_params_requests(self, req, m_config):
         """ Ensure that requests.get() is called with correct parameters. """
 
         age_key = 'birthtime'
         age_val = 'someval'
         m_config.return_value.get_value.side_effect = [age_key, age_val]
         req.get.return_value = mock.Mock()
-        self.app._get_app_html(self.url)
+        self.app._download_app_html(self.url)
 
         req.get.assert_called_with(self.url, cookies={age_key: age_val})
 
     @mock.patch('steamCLI.steamapp.Config', autospec=True)
     @mock.patch('steamCLI.steamapp.requests.get')
-    def test_get_app_html_requests_exception(self, get, m_config):
+    def test_download_app_html_requests_exception(self, get, m_config):
         """
         Ensure that exception is thrown when the app page does not exist.
         """
@@ -533,13 +534,13 @@ class ScrapingTests(unittest.TestCase):
         get.return_value = mocked_response
 
         with self.assertRaises(HTTPError):
-            self.app._get_app_html(self.url)
+            self.app._download_app_html(self.url)
         m_config.assert_called()
         get.assert_called()
 
     @mock.patch('steamCLI.steamapp.Config', autospec=True)
     @mock.patch('steamCLI.steamapp.requests.get')
-    def test_get_app_html_return_value(self, get, m_config):
+    def test_download_app_html_return_value(self, get, m_config):
         """ Ensures that when everything is ok, string object is returned. """
 
         text = "pretend this is html"
@@ -547,7 +548,7 @@ class ScrapingTests(unittest.TestCase):
         mocked_response = mock.Mock()
         mocked_response.text = text
         get.return_value = mocked_response
-        actual_text = self.app._get_app_html(self.url)
+        actual_text = self.app._download_app_html(self.url)
 
         self.assertEqual(text, actual_text)
         m_config.assert_called()
@@ -575,18 +576,18 @@ class ScrapingTests(unittest.TestCase):
         self.assertEqual(expected, url)
         mock_config.return_value.get_value.assert_called()
 
-    def test_get_review_text_no_html(self):
+    def test_extract_review_text_no_html(self):
         """
         Ensures that undefined html does not break the function.
         """
 
         html = None
-        reviews = self.app._get_review_text(html)
+        reviews = self.app._extract_review_text(html)
 
         self.assertFalse(reviews)
 
     @mock.patch('steamCLI.steamapp.Config', autospec=True)
-    def test_get_review_text_one_match(self, mock_config):
+    def test_extract_review_text_one_match(self, mock_config):
         """
         Ensures a review text can be extracted from BeautifulSoup.ResultSet.
         Checks what happens when only one match is found (i.e, overall score).
@@ -606,12 +607,12 @@ class ScrapingTests(unittest.TestCase):
                        not this
                      </{element}>
                    </html>'''
-        reviews = self.app._get_review_text(html)
+        reviews = self.app._extract_review_text(html)
 
         self.assertEqual(expected_reviews, reviews)
 
     @mock.patch('steamCLI.steamapp.Config', autospec=True)
-    def test_get_review_text_two_matches(self, mock_config):
+    def test_extract_review_text_two_matches(self, mock_config):
         """
         Ensures a review text can be extracted from BeautifulSoup.ResultSet.
         Checks what happens when two matches are found (i.e., overall and
@@ -638,12 +639,12 @@ class ScrapingTests(unittest.TestCase):
                        not this
                      </{element}>
                    </html>'''
-        reviews = self.app._get_review_text(html)
+        reviews = self.app._extract_review_text(html)
 
         self.assertEqual(expected_reviews, reviews)
 
     @mock.patch('steamCLI.steamapp.Config', autospec=True)
-    def test_get_review_text_no_matches(self, mock_config):
+    def test_extract_review_text_no_matches(self, mock_config):
         """
         Makes sure that when no matches are found, an empty review list is
         returned.
@@ -661,21 +662,21 @@ class ScrapingTests(unittest.TestCase):
                        no findy
                      </{element}>
                    </html>'''
-        reviews = self.app._get_review_text(html)
+        reviews = self.app._extract_review_text(html)
 
         self.assertFalse(reviews)
 
-    def test_get_app_scores_no_reviews(self):
+    def test_extract_app_scores_no_reviews(self):
         """
         Ensure that when no review lines are given function does not break.
         """
 
         reviews = None
-        scores = self.app._get_app_scores(reviews)
+        scores = self.app._extract_app_scores(reviews)
 
         self.assertFalse(scores)
 
-    def test_get_app_scores_one_review(self):
+    def test_extract_app_scores_one_review(self):
         """
         Ensure that with one review line, correct app info is extracted.
         """
@@ -683,12 +684,12 @@ class ScrapingTests(unittest.TestCase):
         count = '16,855'
         percent = '55%'
         reviews = [f'test test {count} something else {percent}']
-        scores = self.app._get_app_scores(reviews)
+        scores = self.app._extract_app_scores(reviews)
 
         self.assertEqual(count, scores[0][0])
         self.assertEqual(percent, scores[0][1])
 
-    def test_get_app_scores_two_reviews(self):
+    def test_extract_app_scores_two_reviews(self):
         """
         Ensure that with two review lines, correct app info is extracted.
         """
@@ -700,7 +701,7 @@ class ScrapingTests(unittest.TestCase):
         line1 = f'test test {count1} something else {percent1}'
         line2 = f'test test {count2} something else {percent2}'
         reviews = [line1, line2]
-        scores = self.app._get_app_scores(reviews)
+        scores = self.app._extract_app_scores(reviews)
 
         self.assertEqual(count1, scores[0][0])
         self.assertEqual(percent1, scores[0][1])
@@ -716,9 +717,9 @@ class ScrapingTests(unittest.TestCase):
         mock_construct.assert_not_called()
 
     @mock.patch.object(SteamApp, '_construct_app_url')  # a
-    @mock.patch.object(SteamApp, '_get_app_html')  # b
-    @mock.patch.object(SteamApp, '_get_review_text')  # c
-    @mock.patch.object(SteamApp, '_get_app_scores')
+    @mock.patch.object(SteamApp, '_download_app_html')  # b
+    @mock.patch.object(SteamApp, '_extract_review_text')  # c
+    @mock.patch.object(SteamApp, '_extract_app_scores')
     def test_scrape_page_two_reviews(self, mock_get_scores, c, b, a):
         """
         Ensures scrape page assigns review scores when two reviews are provided.
@@ -738,9 +739,9 @@ class ScrapingTests(unittest.TestCase):
         self.assertEqual(r_percent, self.app.recent_percent)
 
     @mock.patch.object(SteamApp, '_construct_app_url')  # a
-    @mock.patch.object(SteamApp, '_get_app_html')  # b
-    @mock.patch.object(SteamApp, '_get_review_text')  # c
-    @mock.patch.object(SteamApp, '_get_app_scores')
+    @mock.patch.object(SteamApp, '_download_app_html')  # b
+    @mock.patch.object(SteamApp, '_extract_review_text')  # c
+    @mock.patch.object(SteamApp, '_extract_app_scores')
     def test_scrape_page_one_review(self, mock_get_scores, c, b, a):
         """
         Ensures scrape page assigns review scores when one review is provided.
@@ -757,9 +758,9 @@ class ScrapingTests(unittest.TestCase):
         self.assertFalse(self.app.recent_percent)
 
     @mock.patch.object(SteamApp, '_construct_app_url')  # a
-    @mock.patch.object(SteamApp, '_get_app_html')  # b
-    @mock.patch.object(SteamApp, '_get_review_text')  # c
-    @mock.patch.object(SteamApp, '_get_app_scores')
+    @mock.patch.object(SteamApp, '_download_app_html')  # b
+    @mock.patch.object(SteamApp, '_extract_review_text')  # c
+    @mock.patch.object(SteamApp, '_extract_app_scores')
     def test_scrape_page_no_reviews(self, mock_get_scores, c, b, a):
         """
         Ensures scrape page assigns review scores when one review is provided.
@@ -772,3 +773,11 @@ class ScrapingTests(unittest.TestCase):
         self.assertFalse(self.app.overall_percent)
         self.assertFalse(self.app.recent_count)
         self.assertFalse(self.app.recent_percent)
+
+
+class IsThereAnyDealAPITests(unittest.TestCase):
+    """
+    Test suite for functionality that relies on data from Is There Any
+    Deal API.
+    """
+
