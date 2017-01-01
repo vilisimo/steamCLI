@@ -1,4 +1,4 @@
--some of the games have price_in_cents (war of the roses)
+- some of the games have price_in_cents (war of the roses)
 
 steamapp tests:
 - config -> change to mock objects
@@ -16,4 +16,10 @@ various methods.
 remove it, move those to optional arguments and have the caller deal with the
  logic. This way, methods would be a bit more general.
  
- - sanitize_title() does not sanitize strings in a way that Is There Any Deal expects. Namely, it does not represent, say, russian letters the itad does. Unidecode csn be used to decode non-english strings, but that does not result in identical strings that itad uses. There should be a way to query their API through steam id?
+- sanitize_title() does not sanitize strings in a way that Is There Any Deal expects. Namely, it does not represent, say, russian letters the itad does. Unidecode csn be used to decode non-english strings, but that does not result in identical strings that itad uses. There should be a way to query their API through steam id?
+
+- review scraping and ITAD API calls could be made in parallel.
+
+- maybe there should be a db that has all titles/app ids. It could be used to
+look up the associated app id, title, then all three calls could be made in
+parallel.
