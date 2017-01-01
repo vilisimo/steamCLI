@@ -8,10 +8,12 @@ method)
 - assertRaises: some tests add side effect to response.get directly, instead
 of returning a mock object with an error inside
 
--_get_app_html and _fetch_text are basically the same, except for cookies.
+- _get_app_html and _fetch_text are basically the same, except for cookies.
 Could merge them. But then caller would have to know a looooot when calling
 various methods.
 
--a lot of private methods have config in it. Perhaps it would be better to
+- a lot of private methods have config in it. Perhaps it would be better to
 remove it, move those to optional arguments and have the caller deal with the
  logic. This way, methods would be a bit more general.
+ 
+ - sanitize_title() does not sanitize strings in a way that Is There Any Deal expects. Namely, it does not represent, say, russian letters the itad does. Unidecode csn be used to decode non-english strings, but that does not result in identical strings that itad uses. There should be a way to query their API through steam id?
