@@ -781,3 +781,13 @@ class IsThereAnyDealAPITests(unittest.TestCase):
     Deal API.
     """
 
+    def test_extract_historical_low(self):
+        """
+        Ensure that a historical low can be extracted given correct info. 
+        """
+
+        pass
+
+    
+
+

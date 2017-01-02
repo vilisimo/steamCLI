@@ -23,6 +23,9 @@ class SteamApp:
         # Review information
         self.overall_count, self.overall_percent = [None]*2
         self.recent_count, self.recent_percent = [None]*2
+        # Historical low
+        self.historical_low, self.historical_cut = [None]*2
+        self.historical_shop = None
 
     def find_app(self, origin, title=None, appid=None, region=None):
         """
@@ -67,6 +70,44 @@ class SteamApp:
             recent = scores[1]
             self.recent_count = recent[0]
             self.recent_percent = recent[1]
+
+    def extract_historical_low(self, region):
+        """ 
+        Extracts historical low price by calling Is There Any Deal API.
+
+        :param region: which region should the price be found for.
+        """
+
+        pass
+
+    def _construct_ITAD_url(self, region):
+        """
+        Constructs url conforming to ITAD expectation.
+
+        :param region: which region should be used to query ITAD.
+        """
+
+        pass
+
+    def _extract_ITAD_json(self, url):
+        """
+        Queries ITAD API and returns resulting response. 
+
+        Note: even if the query consists of random letters and numbers that do 
+        not exist in ITAD database, response is still given back, except it 
+        does not have any valuable keys (namely, 'cut', 'price', 'shop').
+
+        :param url: url of a given app (should conform to ITAD expectations).
+        :return: dictionary that contains price info about the app.
+        """
+
+
+        try:
+            pass
+        except requests.HTTPError:
+            pass
+        else:
+            pass
 
     def _extract_app_scores(self, reviews):
         """
