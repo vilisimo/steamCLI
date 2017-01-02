@@ -24,21 +24,33 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.app = SteamApp()
 
     @mock.patch('steamCLI.steamapp.requests.get')
-    def test_fetch_text(self, mock_get):
+    def test_fetch_resource_error(self, mock_get):
         """ Ensures an error is thrown if resource cannot be accessed. """
 
         mock_get.side_effect = HTTPError()
 
         with self.assertRaises(HTTPError):
-            self.app._fetch_text(self.url)
+            self.app._fetch_resource(self.url)
         self.assertIn(mock.call(self.url), mock_get.call_args_list)
 
     @mock.patch('steamCLI.steamapp.requests.get')
-    def test_fetch_text_exists(self, mock_get):
+    def test_fetch_resource_exists_json(self, mock_get):
+        """ Ensures json can be requested instead of textual repr. """
+
+        mock_obj = mock.Mock()
+        mock_obj.json.return_value = MOCK_DATA
+        mock_get.return_value = mock_obj
+        actual = self.app._fetch_resource(self.url, text=False)
+
+        self.assertEqual(MOCK_DATA, actual)
+        mock_obj.json.assert_called_once()
+
+    @mock.patch('steamCLI.steamapp.requests.get')
+    def test_fetch_resource_exists_text(self, mock_get):
         """ Ensures a textual repr. is returned if resource can be accessed. """
 
         mock_get.return_value = mock.MagicMock(text=RESOURCE)
-        actual = self.app._fetch_text(self.url)
+        actual = self.app._fetch_resource(self.url)
 
         self.assertEqual(RESOURCE, actual)
         self.assertIn(mock.call(self.url), mock_get.call_args_list)
@@ -65,7 +77,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
 
         self.assertEqual(MOCK_DATA, result)
         mock_choose.assert_called_once()
-
+    
     @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
     def test_download_app_data_case_insensitive(self, mock_choose):
         """ Ensure that _download_app_data() is not case sensitive. """
@@ -99,7 +111,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertFalse(result)
         mock_choose.assert_called_once()
 
-    @mock.patch.object(SteamApp, '_fetch_text')
+    @mock.patch.object(SteamApp, '_fetch_resource')
     @mock.patch.object(SteamApp, '_download_app_data')
     @mock.patch.object(SteamApp, '_assign_steam_info')
     def test_find_app_with_title(self, mock_assign, mock_get_data, mock_fetch):
@@ -116,7 +128,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         mock_get_data.assert_called_with(RESOURCE, appid=None,
                                          region=None, title=self.title)
 
-    @mock.patch.object(SteamApp, '_fetch_text')
+    @mock.patch.object(SteamApp, '_fetch_resource')
     @mock.patch.object(SteamApp, '_download_app_data')
     @mock.patch.object(SteamApp, '_assign_steam_info')
     def test_find_app_with_id(self, mock_assign, mock_get_data, mock_fetch):
@@ -133,7 +145,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         mock_get_data.assert_called_with(RESOURCE, appid=self.appid,
                                          region=None, title=None)
 
-    @mock.patch.object(SteamApp, '_fetch_text')
+    @mock.patch.object(SteamApp, '_fetch_resource')
     @mock.patch.object(SteamApp, '_download_app_data')
     @mock.patch.object(SteamApp, '_assign_steam_info')
     def test_find_app_no_data(self, mock_assign, mock_get_data, mock_fetch):
@@ -594,7 +606,7 @@ class ScrapingTests(unittest.TestCase):
         """
 
         expected_text = 'get this'
-        expected_reviews = [expected_text,]
+        expected_reviews = [expected_text, ]
         element = 'div'
         class_ = 'test'
         mock_config.return_value.get_value.return_value = [element, class_]

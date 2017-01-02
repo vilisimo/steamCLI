@@ -43,7 +43,7 @@ class SteamApp:
         :param region: region for which the information should be retrieved.
         """
 
-        text = self._fetch_text(origin)
+        text = self._fetch_resource(origin)
         app_data = self._download_app_data(text, title=title, appid=appid,
                                            region=region)
         self._assign_steam_info(app_data)
@@ -80,7 +80,7 @@ class SteamApp:
 
         pass
 
-    def _construct_ITAD_url(self, region):
+    def _construct_itad_url(self, region):
         """
         Constructs url conforming to ITAD expectation.
 
@@ -89,7 +89,7 @@ class SteamApp:
 
         pass
 
-    def _extract_ITAD_json(self, url):
+    def _extract_itad_json(self, url):
         """
         Queries ITAD API and returns resulting response. 
 
@@ -293,11 +293,12 @@ class SteamApp:
         return json_data[outer_key][inner_key]
 
     @staticmethod
-    def _fetch_text(origin):
+    def _fetch_resource(origin, text=True):
         """
         Gets the textual JSON representation from a given link.
 
         :param origin: link to a resource.
+        :param text: determines what should be returned: json or text.
         """
 
         try:
@@ -306,7 +307,10 @@ class SteamApp:
         except requests.HTTPError:
             raise requests.HTTPError("Resource not found.")
         else:
-            return response.text
+            if text:
+                return response.text
+            else:
+                return response.json()
 
     def _download_app_data(self, json_text, title=None, appid=None, region=None):
         """
