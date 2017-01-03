@@ -4,6 +4,8 @@ steamapp tests:
 - config -> change to mock objects
 - mock.patch(steamCLI.steamapp.SteamApp...) -> mock.patch.object(SteamApp,
 method)
+- make sure that mocked configs are mocked in steamCLI.steamapp, NOT in
+steamCLI.config. Completely separate things!
 
 - assertRaises: some tests add side effect to response.get directly, instead
 of returning a mock object with an error inside
