@@ -87,27 +87,20 @@ class SteamApp:
         :param region: which region should be used to query ITAD.
         """
 
-        pass
+        if not self.title:
+            return ''
 
-    def _extract_itad_json(self, url):
-        """
-        Queries ITAD API and returns resulting response. 
+        config = Config('steamCLI', 'resources.ini')
+        if not region:
+            region = config.get_value('SteamRegions', 'default')
 
-        Note: even if the query consists of random letters and numbers that do 
-        not exist in ITAD database, response is still given back, except it 
-        does not have any valuable keys (namely, 'cut', 'price', 'shop').
+        app_key = config.get_value('IsThereAnyDealAPI', 'app_key')
+        app_url = config.get_value('IsThereAnyDealAPI', 'app_url')
+        url = (app_url.replace('[region]', region)
+                      .replace('[key]', app_key)
+                      .replace('[title]', self.title))
 
-        :param url: url of a given app (should conform to ITAD expectations).
-        :return: dictionary that contains price info about the app.
-        """
-
-
-        try:
-            pass
-        except requests.HTTPError:
-            pass
-        else:
-            pass
+        return url
 
     def _extract_app_scores(self, reviews):
         """

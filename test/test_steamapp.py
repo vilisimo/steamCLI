@@ -793,12 +793,33 @@ class IsThereAnyDealAPITests(unittest.TestCase):
     Deal API.
     """
 
-    def test_extract_historical_low(self):
+    def setUp(self):
+        self.app = SteamApp()
+
+    def test_construct_itad_url_no_title(self):
         """
-        Ensure that a historical low can be extracted given correct info. 
+        Ensures that url is not constructed when a title is missing (since it
+        is a key parameter and without it url is invalid).
         """
 
-        pass
+        url = self.app._construct_itad_url(region='uk')
+
+        self.assertFalse(url)
+
+    @mock.patch('steamCLI.steamapp.Config', autospec=True)
+    def test_construct_itad_url_no_region(self, mocked_config):
+        """ Ensure that given no region, default is used. """
+
+        self.app.title = 'test'
+        region = 'uk'
+        mock_url = 'www.example.com/mock/url/[region]'
+        mock_url_region = mock_url.replace('[region]', region)
+        mock_key = 'mock_key'
+        mocked_config.return_value.get_value.side_effect = [region, mock_url,
+                                                            mock_key]
+        url = self.app._construct_itad_url(region='')
+
+        self.assertEqual(url, mock_url_region)
 
     
 
