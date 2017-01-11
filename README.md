@@ -13,22 +13,31 @@ low). For that, you need register your app and request an API key. You can do
   value to _api_key_ in **_IsThereAnyDealAPI_** section. 
  
 ## Future
-At the moment, the project is in early stages. Key features that are planned
-for the future are described below. Features under _Optional_ are those that 
-can be enabled or disabled by passing different parameters when calling the 
-steamCLI.
+At the moment, the bulk of features that I have planned are functional. 
+However, there is still much room for improvement:
 
-**Default:**
- - Getting game's price (current), average user rating, release date.
- - Getting information about the lowest recorded price of a particular game/app.
- - Getting information about where to find the best deal for an app.
+**Code-wise:**
+ - Creating more tests to ensure everything works properly.
+ - Refactoring the code to reduce code duplication and increase maintainability.
+ - Introducing parallel requests (most likely candidate: do scraping and 
+ lowest historical price search at the same time) to reduce waiting.
+ - Figuring out what ITAD uses to process titles so that non-latin letters 
+ can be represented properly (e.g., Russian alphabet).
 
-**Optional:**
+**Functionality:**
  - Showing whether the game has co-op, multi-player, controller support.
+ - Showing whether the user has the game or not.
+ - ...aggregating and showing other useful information from variety of sources.
+ 
+**Misc**
+ - Setting up _setup.py_ so that the steamCLI could be installed through pip.
+ - Writing up instructions on how to install steamCLI so that it could be 
+ called up anywhere from the console by writing something like `>>> steam -t`
+  or `>>>steamCLI -t`.
 
 ## Things Learned
-The main goal of the project was to learn new techniques. The project allowed
- me to get exposure to:
+The main goal of the project was to learn new programming techniques. The 
+project allowed me to get exposure to:
  - _argparse_ module and creating CLI applications.
  - _unittest.mock_, mocking objects and methods, as well as general unit 
    testing and keeping your tests small and isolated.
