@@ -4,6 +4,7 @@ import json
 from bs4 import BeautifulSoup
 
 from steamCLI.config import Config
+from steamCLI.utils import sanitize_title
 
 
 class SteamApp:
@@ -78,28 +79,33 @@ class SteamApp:
         :param region: which region should the price be found for.
         """
 
-        pass
+        if not self.title:
+            return
 
-    def _construct_itad_url(self, region):
+        sanitized_title = sanitize_title(self.title)
+        url = self._construct_itad_url(sanitized_title, region)
+        itad_json = self._fetch_resource(url, text=False)
+        itad_data = itad_json['data'][sanitized_title]
+        self.historical_cut = self._get_value(itad_data, 'cut')
+        self.historical_low = self._get_value(itad_data, 'price')
+        self.historical_shop = self._get_nested_value(itad_data, 'shop', 'name')
+
+    def _construct_itad_url(self, sanitized_title, region):
         """
         Constructs url conforming to ITAD expectation.
 
         :param region: which region should be used to query ITAD.
         """
 
-        if not self.title:
-            return ''
-
         config = Config('steamCLI', 'resources.ini')
         if not region:
             region = config.get_value('SteamRegions', 'default')
 
-        app_key = config.get_value('IsThereAnyDealAPI', 'app_key')
+        api_key = config.get_value('IsThereAnyDealAPI', 'api_key')
         app_url = config.get_value('IsThereAnyDealAPI', 'app_url')
         url = (app_url.replace('[region]', region)
-                      .replace('[key]', app_key)
-                      .replace('[title]', self.title))
-
+                      .replace('[key]', api_key)
+                      .replace('[title]', sanitized_title))
         return url
 
     def _extract_app_scores(self, reviews):

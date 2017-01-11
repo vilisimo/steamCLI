@@ -796,31 +796,81 @@ class IsThereAnyDealAPITests(unittest.TestCase):
     def setUp(self):
         self.app = SteamApp()
 
-    def test_construct_itad_url_no_title(self):
-        """
-        Ensures that url is not constructed when a title is missing (since it
-        is a key parameter and without it url is invalid).
-        """
-
-        url = self.app._construct_itad_url(region='uk')
-
-        self.assertFalse(url)
-
     @mock.patch('steamCLI.steamapp.Config', autospec=True)
-    def test_construct_itad_url_no_region(self, mocked_config):
+    def test_construct_itad_url_no_region_provided(self, mocked_config):
         """ Ensure that given no region, default is used. """
 
-        self.app.title = 'test'
         region = 'uk'
+        mock_key = 'mock_key'
         mock_url = 'www.example.com/mock/url/[region]'
         mock_url_region = mock_url.replace('[region]', region)
+        mocked_config.return_value.get_value.side_effect = [region, mock_key,
+                                                            mock_url]
+        url = self.app._construct_itad_url("test", region='')
+
+        self.assertEqual(mock_url_region, url)
+
+    @mock.patch('steamCLI.steamapp.Config', autospec=True)
+    def test_construct_itad_url_title(self, mocked_config):
+        """
+        Ensure a url is constructed properly - title is in lower case,
+        etc - when _construct_itad_url is called.
+        """
+
+        title = "test_title"
         mock_key = 'mock_key'
-        mocked_config.return_value.get_value.side_effect = [region, mock_url,
-                                                            mock_key]
-        url = self.app._construct_itad_url(region='')
+        mock_url = 'www.example.com/mock/url/[title]'
+        mock_url_title = mock_url.replace('[title]', title)
+        mocked_config.return_value.get_value.side_effect = [mock_key, mock_url]
+        url = self.app._construct_itad_url(title, region="eu")
 
-        self.assertEqual(url, mock_url_region)
+        self.assertEqual(mock_url_title, url)
 
+    @mock.patch('steamCLI.steamapp.Config', autospec=True)
+    def test_construct_itad_url_key(self, mocked_config):
+        """
+        Ensure that the key is replaced when _construct_itad_url is called.
+        """
+        mock_key = 'mock_key'
+        mock_url = 'www.example.com/mock/url/[key]'
+        mock_url_title = mock_url.replace('[key]', mock_key)
+        mocked_config.return_value.get_value.side_effect = [mock_key, mock_url]
+        url = self.app._construct_itad_url("placeholder", region="eu")
+
+        self.assertEqual(mock_url_title, url)
     
+    def test_extract_historical_low_no_title(self):
+        """ Ensure that with no title historical low cannot be extracted. """
 
+        self.app.title = None;
+        self.app.extract_historical_low(region="test region")
 
+        self.assertFalse(self.app.historical_low)
+        self.assertFalse(self.app.historical_shop)
+        self.assertFalse(self.app.historical_cut)
+
+    @mock.patch('steamCLI.steamapp.SteamApp._construct_itad_url')
+    @mock.patch('steamCLI.steamapp.SteamApp._fetch_resource')
+    def test_extract_historical_low_assigns_proper_values(self, m_fetch, m_url):
+        """ Ensure the method works when a proper JSON is returned. """
+
+        app_title = 'test_title'
+        expected_cut = 50
+        expected_price = 1
+        expected_shop_name = 'test_shop'
+        self.app.title = app_title
+        m_url.return_value = "doesn't matter"
+        m_fetch.return_value = {
+            'data': {
+                app_title.replace('_', ''): {
+                    'cut': expected_cut,
+                    'price': expected_price,
+                    'shop': {
+                        'name': expected_shop_name,
+                    }}}}
+
+        self.app.extract_historical_low(region="doesn't matter")
+
+        self.assertEqual(expected_cut, self.app.historical_cut)
+        self.assertEqual(expected_shop_name, self.app.historical_shop)
+        self.assertEqual(expected_price, self.app.historical_low)
