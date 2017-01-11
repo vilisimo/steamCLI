@@ -30,7 +30,12 @@ def main():
             print("Scraping reviews...")
             app.scrape_app_page()
 
+        if args.historical_low:
+            print("Leafing through history books...")
+            app.extract_historical_low(args.region)
+
         _print_application_info(app, args)
+
     else:
         print("Application was not found. Is the supplied information correct?")
 
@@ -65,6 +70,8 @@ def _create_parser(config):
                         type=str.lower, default=default_region, choices=regions,
                         help=config.get_value('HelpText', 'region_help') +
                         ' Available values: ' + ", ".join(regions))
+    parser.add_argument("-l", "--historical_low", action="store_true",
+                        help=config.get_value('HelpText', 'historical_help'))
 
     return parser
 
@@ -110,6 +117,14 @@ def _print_application_info(app, args=None, max_chars=79):
             recent_p = app.recent_percent
             reviews = f"{recent_c} recent reviews ({recent_p} positive)"
             print(reviews.center(max_chars))
+
+    if args.historical_low:
+        print()
+        low = app.historical_low
+        cut = app.historical_cut
+        shop = app.historical_shop
+        h_low = f"Historical low: {low:.2f} {currency} (-{cut}%). Shop: {shop}"
+        print(h_low.center(max_chars))
 
     if args.description:
         description = app.description
