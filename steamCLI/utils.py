@@ -33,3 +33,24 @@ def sanitize_title(title):
 
     return result
 
+
+def calculate_discount(initial, current):
+    """
+    Calculates the % difference between initial and current price.
+
+    Note: when initial is 0 (that is, old price was lower than the new one -
+    very unlikely in Steam), we assume that increase is (new price * 100)%.
+    """
+
+    if initial is None or current is None:
+        return 0
+
+    if current == 0:
+        return -100
+
+    difference = current - initial
+    # Division by 0 is not allowed. 1, however, will not change the price.
+    initial = 1 if initial == 0 else initial
+    percent = (difference / initial) * 100
+
+    return int(round(percent, 0))

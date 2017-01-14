@@ -4,18 +4,18 @@ import json
 from bs4 import BeautifulSoup
 
 from steamCLI.config import Config
-from steamCLI.utils import sanitize_title
+from steamCLI.utils import sanitize_title, calculate_discount
 
 
 class SteamApp:
     def __init__(self):
         """
-        Values shown only for readability. In the ideal case, we aim to assign
+        Values shown for clarity. In an ideal case, we aim to assign
         values to all of them.
         """
 
         # Key information
-        self.title, self.appid = [None]*2
+        self.title, self.appID = [None] * 2
         # Additional game information
         self.release_date, self.description, self.metacritic = [None]*3
         # Pricing information
@@ -28,7 +28,7 @@ class SteamApp:
         self.historical_low, self.historical_cut = [None]*2
         self.historical_shop = None
 
-    def find_app(self, origin, title=None, appid=None, region=None):
+    def find_app(self, origin, title=None, app_id=None, region=None):
         """
         Finds an app corresponding to a given title/id. Assigns the object
         information corresponding to the apps.
@@ -40,12 +40,12 @@ class SteamApp:
 
         :param origin: url to resource: where a list of games is located.
         :param title: title of an app that needs to be checked.
-        :param appid: id of an app that needs to be checked.
+        :param app_id: id of an app that needs to be checked.
         :param region: region for which the information should be retrieved.
         """
 
         text = self._fetch_resource(origin)
-        app_data = self._download_app_data(text, title=title, appid=appid,
+        app_data = self._download_app_data(text, title=title, appid=app_id,
                                            region=region)
         self._assign_steam_info(app_data)
 
@@ -55,7 +55,7 @@ class SteamApp:
         positive.
         """
 
-        if not self.appid:
+        if not self.appID:
             return
 
         url = self._construct_app_url()
@@ -90,7 +90,8 @@ class SteamApp:
         self.historical_low = self._get_value(itad_data, 'price')
         self.historical_shop = self._get_nested_value(itad_data, 'shop', 'name')
 
-    def _construct_itad_url(self, sanitized_title, region):
+    @staticmethod
+    def _construct_itad_url(sanitized_title, region):
         """
         Constructs url conforming to ITAD expectation.
 
@@ -108,7 +109,8 @@ class SteamApp:
                       .replace('[title]', sanitized_title))
         return url
 
-    def _extract_app_scores(self, reviews):
+    @staticmethod
+    def _extract_app_scores(reviews):
         """
         Extracts scores from review line(s).
 
@@ -134,7 +136,8 @@ class SteamApp:
 
         return scores
 
-    def _extract_review_text(self, html):
+    @staticmethod
+    def _extract_review_text(html):
         """
         Extracts recent/overall review text (lines) from html.
 
@@ -171,7 +174,8 @@ class SteamApp:
 
         return reviews
 
-    def _download_app_html(self, url):
+    @staticmethod
+    def _download_app_html(url):
         """
         Scrapes review scores from the app's Steam page.
 
@@ -198,12 +202,12 @@ class SteamApp:
     def _construct_app_url(self):
         """ Constructs steam page URL that is used for web scraping. """
 
-        if not self.appid:
+        if not self.appID:
             return ''
 
         config = Config('steamCLI', 'resources.ini')
         app_url = config.get_value('SteamWebsite', 'app_page')
-        url = app_url.replace('[id]', str(self.appid))
+        url = app_url.replace('[id]', str(self.appID))
 
         return url
 
@@ -213,7 +217,7 @@ class SteamApp:
         if not app_data:
             return
 
-        self.appid = self._get_value(app_data, 'steam_appid')
+        self.appID = self._get_value(app_data, 'steam_appid')
         self.title = self._get_value(app_data, 'name')
         self.release_date = self._get_nested_value(app_data, 'release_date',
                                                    'date')
@@ -221,36 +225,15 @@ class SteamApp:
         self.metacritic = self._get_nested_value(app_data, 'metacritic',
                                                  'score')
         self.currency = self._get_nested_value(app_data, 'price_overview',
-                                            'currency')
+                                               'currency')
         self.initial_price = self._get_nested_value(app_data, 'price_overview',
                                                     'initial')
         self.final_price = self._get_nested_value(app_data, 'price_overview',
                                                   'final')
-        self.discount = self._calculate_discount(self.initial_price,
-                                                 self.final_price)
+        self.discount = calculate_discount(self.initial_price, self.final_price)
 
-    def _calculate_discount(self, initial, current):
-        """
-        Calculates the % difference between initial and current price.
-
-        Note: when initial is 0 (that is, old price was lower than the new one -
-        very unlikely in Steam), we assume that increase is (new price * 100)%.
-        """
-
-        if initial is None or current is None:
-            return 0
-
-        if current == 0:
-            return -100
-
-        difference = current - initial
-        # Division by 0 is not allowed. 1, however, will not change the price.
-        initial = 1 if initial == 0 else initial
-        percent = (difference / initial) * 100
-
-        return int(round(percent, 0))
-
-    def _get_value(self, json_data, key):
+    @staticmethod
+    def _get_value(json_data, key):
         """
         Gets a key value from a given JSON.
 
@@ -270,7 +253,8 @@ class SteamApp:
             value = None
         return value
 
-    def _get_nested_value(self, json_data, outer_key, inner_key):
+    @staticmethod
+    def _get_nested_value(json_data, outer_key, inner_key):
         """
         Gets a specified value from a given JSON.
 

@@ -139,7 +139,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
 
         mock_fetch.return_value = RESOURCE
         mock_get_data.return_value = MOCK_DATA
-        self.app.find_app(self.url, appid=self.appid)
+        self.app.find_app(self.url, app_id=self.appid)
 
         mock_assign.assert_called_with(MOCK_DATA)
         mock_get_data.assert_called_with(RESOURCE, appid=self.appid,
@@ -284,7 +284,7 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         self.id = 1
         self.url = 'http://api.example.com/test/'
         self.app = SteamApp()
-        self.app.appid = self.id
+        self.app.appID = self.id
 
         self.response = {
             'name': 'Test',
@@ -394,7 +394,7 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         cur = self.response['price_overview']['currency']
         expected_date = self.response['release_date']['date']
 
-        self.assertEqual(expected_appid, self.app.appid)
+        self.assertEqual(expected_appid, self.app.appID)
         self.assertEqual(expected_title, self.app.title)
         self.assertEqual(score, self.app.metacritic)
         self.assertEqual(desc, self.app.description)
@@ -418,86 +418,6 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         self.assertFalse(self.app.discount)
 
 
-class HelperFunctionsTests(unittest.TestCase):
-    """ Test suite for functions that support SteamApp's functionality. """
-
-    def setUp(self):
-        self.app = SteamApp()
-
-    def test_calculate_discount_proper_values(self):
-        """
-        Ensures the function calculates correct percentage with valid values.
-        """
-
-        initial = 100.00
-        current = 50.00
-        expected = -50
-        percent = self.app._calculate_discount(initial, current)
-
-        self.assertEqual(expected, percent)
-
-    def test_calculate_discount_doubles(self):
-        """ Ensures correct percentages are derived from doubles. """
-
-        initial = 29.99
-        current = 7.49
-        expected = -75
-        percent = self.app._calculate_discount(initial, current)
-
-        self.assertEqual(expected, percent)
-
-    def test_calculate_price_higher_than_before(self):
-        """ Ensure that initial < current does not break the function """
-
-        initial = 1
-        current = 3
-        expected = 200
-        percent = self.app._calculate_discount(initial, current)
-
-        self.assertEqual(expected, percent)
-
-    def test_calculate_price_zero(self):
-        """ Ensure that zero initial/current does not break the function. """
-
-        initial = 0
-        current = 3
-        expected = 300
-        percent = self.app._calculate_discount(initial, current)
-
-        self.assertEqual(expected, percent)
-
-    def test_calculate_app_free(self):
-        """ Ensure that when a game/app is free, discount is shown as -100%. """
-
-        initial = 16456.46
-        current = 0
-        expected = -100
-        percent = self.app._calculate_discount(initial, current)
-
-        self.assertEqual(expected, percent)
-
-    def test_calculate_price_is_none(self):
-        """
-        Ensure that when either of the prices is None, 0 is returned:
-            - initial price = None -> x$ always has 0% discount from None
-            - final price = None -> x$ is always 0% higher than None
-        """
-
-        initial = None
-        current = 100
-        expected = 0
-        percent = self.app._calculate_discount(initial, current)
-
-        self.assertEqual(expected, percent)
-
-        initial = 100
-        current = None
-        expected = 0
-        percent = self.app._calculate_discount(initial, current)
-
-        self.assertEqual(expected, percent)
-
-
 class ScrapingTests(unittest.TestCase):
     """
     Test suite to make sure that web scraping manages to get appropriate
@@ -506,7 +426,7 @@ class ScrapingTests(unittest.TestCase):
 
     def setUp(self):
         self.app = SteamApp()
-        self.app.appid = 1
+        self.app.appID = 1
         self.url = 'http://www.example.com/'
 
     def test_download_app_html_no_url(self):
@@ -569,7 +489,7 @@ class ScrapingTests(unittest.TestCase):
     def test_construct_app_steam_page_url_no_url(self):
         """ When there is no appid, url cannot be constructed. """
 
-        self.app.appid = None
+        self.app.appID = None
         url = self.app._construct_app_url()
 
         self.assertFalse(url)
@@ -724,7 +644,7 @@ class ScrapingTests(unittest.TestCase):
     def test_scrape_page_no_appid(self, mock_construct):
         """ Ensures scraping does not begin when no app id is provided. """
 
-        self.app.appid = None
+        self.app.appID = None
         self.app.scrape_app_page()
         mock_construct.assert_not_called()
 

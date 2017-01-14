@@ -22,10 +22,9 @@ def main():
         app.find_app(origin=app_list, region=args.region, title=app_title)
     else:
         print("Gathering price information...")
-        app.find_app(origin=app_list, region=args.region, appid=args.appid)
+        app.find_app(origin=app_list, region=args.region, app_id=args.appid)
 
-    if app.appid:
-
+    if app.appID:
         if args.scores:
             print("Scraping reviews...")
             app.scrape_app_page()
@@ -38,10 +37,6 @@ def main():
 
     else:
         print("Application was not found. Is the supplied information correct?")
-
-        # json_data = app._fetch_json(
-        #     'http://store.steampowered.com/api/appdetails?appids={}'.format(app.appid))
-        # pprint.pprint(json_data)
 
 
 def _create_parser(config):
