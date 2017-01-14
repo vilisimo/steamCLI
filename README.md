@@ -30,10 +30,10 @@ However, there is still much room for improvement:
  - ...aggregating and showing other useful information from variety of sources.
  
 **Misc**
- - Setting up _setup.py_ so that the steamCLI could be installed through pip.
+ - Setting up _setup.py_ so that the steamCLI could be installed through _pip_.
  - Writing up instructions on how to install steamCLI so that it could be 
  called up anywhere from the console by writing something like `>>> steam -t`
-  or `>>>steamCLI -t`.
+  or `>>> steamCLI -t`.
 
 ## Things Learned
 The main goal of the project was to learn new programming techniques. The 
