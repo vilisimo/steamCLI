@@ -1,27 +1,23 @@
 - some of the games have price_in_cents (war of the roses)
 
-steamapp tests:
-- config -> change to mock objects
-- mock.patch(steamCLI.steamapp.SteamApp...) -> mock.patch.object(SteamApp,
-method)
-- make sure that mocked configs are mocked in steamCLI.steamapp, NOT in
-steamCLI.config. Completely separate things!
 
 - assertRaises: some tests add side effect to response.get directly, instead
 of returning a mock object with an error inside
 
-- _get_app_html and _fetch_text are basically the same, except for cookies.
-Could merge them. But then caller would have to know a looooot when calling
-various methods.
-
 - a lot of private methods have config in it. Perhaps it would be better to
 remove it, move those to optional arguments and have the caller deal with the
  logic. This way, methods would be a bit more general.
- 
-- sanitize_title() does not sanitize strings in a way that Is There Any Deal expects. Namely, it does not represent, say, russian letters the itad does. Unidecode csn be used to decode non-english strings, but that does not result in identical strings that itad uses. There should be a way to query their API through steam id?
 
 - review scraping and ITAD API calls could be made in parallel.
 
 - maybe there should be a db that has all titles/app ids. It could be used to
 look up the associated app id, title, then all three calls could be made in
 parallel.
+
+- sanitize_title() does not sanitize strings in a way that Is There Any Deal
+expects. Namely, it does not represent, say, russian letters the itad does.
+Unidecode csn be used to decode non-english strings, but that does not result in
+identical strings that itad uses. There should be a way to query their API
+through steam id?
+
+- remove articles from sanitized title

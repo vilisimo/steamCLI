@@ -55,7 +55,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertEqual(RESOURCE, actual)
         self.assertIn(mock.call(self.url), mock_get.call_args_list)
 
-    @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
+    @mock.patch.object(SteamApp, '_choose_complete_json')
     def test_should_not_extract_app_dictionary_when_no_such_app(self, m_func):
         """ Ensures that when nothing is found, None is returned. """
 
@@ -66,7 +66,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertFalse(result)
         m_func.assert_called_once()
 
-    @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
+    @mock.patch.object(SteamApp, '_choose_complete_json')
     def test_should_extract_relevant_app_data(self, mock_choose):
         """
         Ensures _extract_app_dictionary() manages to find relevant dictionaries.
@@ -78,7 +78,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertEqual(MOCK_DATA, result)
         mock_choose.assert_called_once()
     
-    @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
+    @mock.patch.object(SteamApp, '_choose_complete_json')
     def test_hsould_extract_app_dictionary_case_insensitive(self, mock_choose):
         """ Ensure that _extract_app_dictionary() is not case sensitive. """
 
@@ -89,7 +89,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertEqual(MOCK_DATA, result)
         mock_choose.assert_called_once()
 
-    @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
+    @mock.patch.object(SteamApp, '_choose_complete_json')
     def test_should_extract_app_dictionary_given_id(self, mock_choose):
         """
         Ensure that _extract_app_dictionary() works not only with title, but with
@@ -102,7 +102,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertEqual(MOCK_DATA, result)
         mock_choose.assert_called_once()
 
-    @mock.patch('steamCLI.steamapp.SteamApp._choose_complete_json')
+    @mock.patch.object(SteamApp, '_choose_complete_json')
     def test_should_not_get_app_dict_with_id_when_no_such_id(self, mock_choose):
         """ Ensure that when the ID is wrong, nothing is found. """
 
@@ -164,7 +164,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
                                          title=None)
 
     @mock.patch('steamCLI.steamapp.requests.get')
-    @mock.patch('steamCLI.config.Config.get_value')
+    @mock.patch('steamCLI.steamapp.Config.get_value')
     def test_should_choose_json_with_success_true(self, mock_config, mock_get):
         """
         Ensures that _choose_one() method returns a JSON info that has
@@ -201,7 +201,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertEqual(app_d3["3"]["data"], json_data)
 
     @mock.patch('steamCLI.steamapp.requests.get')
-    @mock.patch('steamCLI.config.Config.get_value')
+    @mock.patch('steamCLI.steamapp.Config.get_value')
     def test_should_choose_first_true_json(self, mock_config, mock_get):
         """
         Ensures that _choose_one() method returns a JSON info that has
@@ -237,7 +237,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertEqual(app_d2["2"]["data"], json_data)
 
     @mock.patch('steamCLI.steamapp.requests.get')
-    @mock.patch('steamCLI.config.Config.get_value')
+    @mock.patch('steamCLI.steamapp.Config.get_value')
     def test_should_not_choose_json_when_all_false(self, mock_config, mock_get):
         """
         Ensures that when dicts passed do not have success: True None is
@@ -773,8 +773,8 @@ class IsThereAnyDealAPITests(unittest.TestCase):
         self.assertFalse(self.app.historical_shop)
         self.assertFalse(self.app.historical_cut)
 
-    @mock.patch('steamCLI.steamapp.SteamApp._construct_itad_url')
-    @mock.patch('steamCLI.steamapp.SteamApp._fetch_resource')
+    @mock.patch.object(SteamApp, '_construct_itad_url')
+    @mock.patch.object(SteamApp, '_fetch_resource')
     def test_should_assigns_values_with_correct_json(self, m_fetch, m_url):
         """ Ensure the method works when a proper JSON is returned. """
 
