@@ -3,9 +3,7 @@
 
 import unittest
 
-from unittest import mock
-
-from steamCLI.utils import sanitize_title, calculate_discount
+from steamCLI.utils import sanitize_title, calculate_discount, remove_articles
 
 
 class SanitizeTitlesTests(unittest.TestCase):
@@ -48,6 +46,35 @@ class SanitizeTitlesTests(unittest.TestCase):
         title = 'rocketleague 2015'
         expected = 'rocketleagueii0iv'
         actual = sanitize_title(title)
+
+        self.assertEqual(expected, actual)
+
+
+class RemoveArticlesTests(unittest.TestCase):
+    """ Test suite to ensure that articles are properly removed from titles. """
+
+    def test_should_not_remove_anything(self):
+        """ Ensure that with no articles string is unchanged. """
+
+        expected = 'text without articles or anything like that'
+        actual = remove_articles(expected)
+
+        self.assertEqual(expected, actual)
+
+    def test_should_remove_the(self):
+        """ Ensure that article 'the' is removed from the title. """
+
+        text = 'the company'
+        expected = text[4:]
+        actual = remove_articles(text)
+
+        self.assertEqual(expected, actual)
+
+    def test_should_not_remove_the_in_the_middle_of_a_word(self):
+        """ Ensure 'the' is not removed when it is part of a word. """
+
+        expected = 'grand theft auto'
+        actual = remove_articles(expected)
 
         self.assertEqual(expected, actual)
 
@@ -127,5 +154,4 @@ class CalculateDiscountTests(unittest.TestCase):
         percent = calculate_discount(initial, current)
 
         self.assertEqual(expected, percent)
-
 

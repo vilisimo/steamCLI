@@ -23,15 +23,35 @@ def sanitize_title(title):
 
     # remove_utf = title.lower().encode('ascii', 'ignore').decode("UTF-8")
     # whitespaceless = remove_utf.replace(' ', '')
-    sanitized = ''.join(filter(WHITELIST.__contains__, title.lower()))
+    lowercase_title = title.lower()
+    articless = remove_articles(lowercase_title)
+    sanitized = ''.join(filter(WHITELIST.__contains__, articless))
     numerals = list(sanitized)
 
-    for index, letter in enumerate(numerals):
-        if letter in TRANSFORMATIONS:
-            numerals[index] = TRANSFORMATIONS[letter]
-    result = ''.join(numerals)
+    for index, key in enumerate(numerals):
+        if key in TRANSFORMATIONS:
+            numerals[index] = TRANSFORMATIONS[key]
+    romanized = ''.join(numerals)
 
-    return result
+    return romanized
+
+
+def remove_articles(text):
+    """
+    Removes articles from a given text. Not particularly fast, but since
+    we are dealing with titles, no need to prematurely optimize.
+
+    Note: currently, ITAD removes only 'the'...
+    """
+
+    articles = {'the': ''}
+    remaining = []
+    for word in text.split():
+        if word not in articles:
+            remaining.append(word)
+    # We could remove whitespaces, too. But then the function would be doing
+    # two things instead of one.
+    return ' '.join(remaining)
 
 
 def calculate_discount(initial, current):

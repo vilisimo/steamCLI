@@ -19,5 +19,3 @@ expects. Namely, it does not represent, say, russian letters the itad does.
 Unidecode csn be used to decode non-english strings, but that does not result in
 identical strings that itad uses. There should be a way to query their API
 through steam id?
-
-- remove articles from sanitized title
