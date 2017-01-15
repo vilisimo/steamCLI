@@ -3,18 +3,18 @@ steamCLI is a command line interface tool that allows a user to search steam
 for information about the game/app straight form command line. 
 
 ## Installation
-- Pull the project.
-- Install required packages in requirements.txt.
+- Clone the project: `git clone git@github.com:vilisimo/steamCLI.git`
+- Install required packages in _requirements.txt_: `pip install -r 
+requirements.txt`
 - Get an API key for Is There Any Deal (if you want to see the historical 
 low). For that, you need register your app and request an API key. You can do
  it [here](https://isthereanydeal.com/apps/new/). Additional documentation 
  available [here](http://docs.itad.apiary.io/#introduction/your-apps).
-- Open up [resources.ini](../../tree/master/steamCLI/resources.ini), give 
-  value to _api_key_ in **_IsThereAnyDealAPI_** section. 
+- Open up [resources.ini](../../tree/master/steamCLI/resources.ini), change 
+  _api_key_ in **_IsThereAnyDealAPI_** section to your API key. 
  
 ## Future
-At the moment, the bulk of features that I have planned are functional. 
-However, there is still much room for improvement:
+However, there is much room for improvement:
 
 **Code-wise:**
  - Creating more tests to ensure everything works properly.

@@ -9,7 +9,7 @@ from steamCLI.utils import sanitize_title, calculate_discount
 
 
 class SanitizeTitlesTests(unittest.TestCase):
-    def test_utf8_title(self):
+    def test_should_remove_utf8_characters(self):
         """
         Ensure that titles containing UTF-8 characters are transformed to 
         titles that have only ascii characters.
@@ -21,7 +21,7 @@ class SanitizeTitlesTests(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
-    def test_lowercase_letters(self):
+    def test_should_transform_title_to_lowercase(self):
         """ Ensure string is transformed to lowercase letters. """
 
         title = 'LOWErCASE'
@@ -30,7 +30,7 @@ class SanitizeTitlesTests(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
-    def test_converts_arabic_to_roman(self):
+    def test_should_convert_arabic_to_roman(self):
         """
         Ensure that arabic numerals are converted to roman ones. But in really 
         stupid fashion, as in 10 is not X, but I0...
@@ -42,7 +42,7 @@ class SanitizeTitlesTests(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
-    def test_convers_arabic_to_roman_2(self):
+    def test_should_convert_arabic_to_roman_another(self):
         """ Try different options. """
 
         title = 'rocketleague 2015'
@@ -55,7 +55,7 @@ class SanitizeTitlesTests(unittest.TestCase):
 class CalculateDiscountTests(unittest.TestCase):
     """ Test suite for functions that support SteamApp's functionality. """
 
-    def test_calculate_discount_proper_values(self):
+    def test_should_calculate_discount_with_proper_values(self):
         """
         Ensures the function calculates correct percentage with valid values.
         """
@@ -67,7 +67,7 @@ class CalculateDiscountTests(unittest.TestCase):
 
         self.assertEqual(expected, percent)
 
-    def test_calculate_discount_doubles(self):
+    def test_should_calculate_discount_with_doubles(self):
         """ Ensures correct percentages are derived from doubles. """
 
         initial = 29.99
@@ -77,7 +77,7 @@ class CalculateDiscountTests(unittest.TestCase):
 
         self.assertEqual(expected, percent)
 
-    def test_calculate_price_higher_than_before(self):
+    def test_should_calculate_discount_when_price_is_higher_than_before(self):
         """ Ensure that initial < current does not break the function """
 
         initial = 1
@@ -87,7 +87,7 @@ class CalculateDiscountTests(unittest.TestCase):
 
         self.assertEqual(expected, percent)
 
-    def test_calculate_price_zero(self):
+    def test_should_calculate_discount_when_initial_price_was_zero(self):
         """ Ensure that zero initial/current does not break the function. """
 
         initial = 0
@@ -97,7 +97,7 @@ class CalculateDiscountTests(unittest.TestCase):
 
         self.assertEqual(expected, percent)
 
-    def test_calculate_app_free(self):
+    def test_should_calculate_as_100_discount_when_app_is_free(self):
         """ Ensure that when a game/app is free, discount is shown as -100%. """
 
         initial = 16456.46
@@ -107,7 +107,7 @@ class CalculateDiscountTests(unittest.TestCase):
 
         self.assertEqual(expected, percent)
 
-    def test_calculate_price_is_none(self):
+    def test_should_calculate_discount_as_0_when_price_is_none(self):
         """
         Ensure that when either of the prices is None, 0 is returned:
             - initial price = None -> x$ always has 0% discount from None

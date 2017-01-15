@@ -45,8 +45,8 @@ class SteamApp:
         """
 
         text = self._fetch_resource(origin)
-        app_data = self._download_app_data(text, title=title, appid=app_id,
-                                           region=region)
+        app_data = self._extract_app_dictionary(text, title=title, app_id=app_id,
+                                                region=region)
         self._assign_steam_info(app_data)
 
     def scrape_app_page(self):
@@ -295,7 +295,8 @@ class SteamApp:
             else:
                 return response.json()
 
-    def _download_app_data(self, json_text, title=None, appid=None, region=None):
+    def _extract_app_dictionary(self, json_text, title=None, app_id=None,
+                                region=None):
         """
         Extracts dict in which app resides from JSON response by loading textual
         representation of JSON and applying private inner function to it over
@@ -320,7 +321,7 @@ class SteamApp:
                     if dictionary["name"].lower() == title.lower():
                         app_dicts.append(dictionary)
                 else:
-                    if dictionary["appid"] == appid:
+                    if dictionary["appid"] == app_id:
                         app_dicts.append(dictionary)
             except KeyError:
                 pass
