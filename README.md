@@ -35,13 +35,3 @@ However, there is much room for improvement:
  called up anywhere from the console by writing something like `>>> steam -t`
   or `>>> steamCLI -t`.
 
-## Things Learned
-The main goal of the project was to learn new programming techniques. The 
-project allowed me to get exposure to:
- - _argparse_ module and creating CLI applications.
- - _unittest.mock_, mocking objects and methods, as well as general unit 
-   testing and keeping your tests small and isolated.
- - _configparser_ and keeping your data outside the code.
- - APIs and how to work with them using _requests_.
- - Basics of webscraping with _BeautifulSoup_.
- - Working with JSON data.
