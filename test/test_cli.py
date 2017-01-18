@@ -18,27 +18,17 @@ class ParserTests(unittest.TestCase):
 
     def setUp(self):
         mock_config = mock.Mock()
-        # config values we will pass to parser
         self.default_region = "uk"
-        regions = 'au,br,ca,cn,eu1,eu2,ru,tr,uk,us'
-        app_help = "cli app description"
-        title_help = "app title"
-        id_help = "app id"
-        desc_help = "app description"
-        reviews_help = "reviews"
-        region_help = "region"
-        historical_help = "historical"
-
         mock_config.get_value.side_effect = [
-            app_help, 
+            "cli app description",
             self.default_region,
-            regions,
-            title_help,
-            id_help,
-            desc_help,
-            reviews_help,
-            region_help,
-            historical_help
+            'au,br,ca,cn,eu1,eu2,ru,tr,uk,us',
+            "app title",
+            "app id",
+            "app description",
+            "reviews",
+            "region",
+            "historical"
         ]
 
         self.parser = _create_parser(mock_config)
@@ -75,9 +65,8 @@ class ParserTests(unittest.TestCase):
     def test_should_not_allow_region_not_in_the_list(self):
         """ Make sure that entering invalid region raises an error. """
 
-        argparse_mock = mock.MagicMock()
-        with mock.patch('steamCLI.cli.argparse.ArgumentParser._print_message', 
-                        argparse_mock):
+        with mock.patch('steamCLI.cli.argparse.ArgumentParser._print_message',
+                        mock.MagicMock()):
             with self.assertRaises((ArgumentError, SystemExit)):
                 region = 'as'
                 self.parser.parse_args(['-t', '-r', region])
@@ -86,11 +75,9 @@ class ParserTests(unittest.TestCase):
         """ Ensures true/false is stored when -t is passed in. """
 
         args = self.parser.parse_args(['-t'])
-
         self.assertTrue(args.title)
 
         args = self.parser.parse_args(['-id', '1'])
-
         self.assertFalse(args.title)
 
     def test_should_assign_id(self):
@@ -105,31 +92,25 @@ class ParserTests(unittest.TestCase):
         """ Ensure description is set either to true or false if -d is used. """
 
         args = self.parser.parse_args(['-td'])
-
         self.assertTrue(args.description)
 
         args = self.parser.parse_args(['-t'])
-
         self.assertFalse(args.description)
 
     def test_should_store_review_scores_flag(self):
         """ Ensure description is set either to true or false if -d is used. """
 
         args = self.parser.parse_args(['-ts'])
-
         self.assertTrue(args.scores)
 
         args = self.parser.parse_args(['-t'])
-
         self.assertFalse(args.scores)
 
     def test_should_store_historical_low_flag(self):
         """ Ensure description is set either to true or false if -d is used. """
 
         args = self.parser.parse_args(['-tl'])
-
         self.assertTrue(args.historical_low)
 
         args = self.parser.parse_args(['-t'])
-
         self.assertFalse(args.historical_low)

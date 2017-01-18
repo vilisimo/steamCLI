@@ -82,7 +82,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         mock_choose.assert_called_once()
 
     @mock.patch.object(SteamApp, '_choose_complete_json')
-    def test_hsould_extract_app_dictionary_case_insensitive(self, mock_choose):
+    def test_should_extract_app_dictionary_case_insensitive(self, mock_choose):
         """ Ensure that _extract_app_dictionary() is not case sensitive. """
 
         mock_choose.return_value = MOCK_DATA
@@ -178,21 +178,18 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         mock_config.side_effect = ["doesn't matter", "doesn't matter"]
         # Dictionaries that we get from a list of all apps
         # (http://api.steampowered.com/ISteamApps/GetAppList/v0002/)
-        applist_d1 = {"appid": 1, "name": "test"}
-        applist_d2 = {"appid": 2, "name": "test"}
-        applist_d3 = {"appid": 3, "name": "test"}
-        dict_list = [applist_d1, applist_d2, applist_d3]
+        dict_list = [{"appid": 1, "name": "test"},
+                     {"appid": 2, "name": "test"},
+                     {"appid": 3, "name": "test"}]
         # Stub dictionary similar to what we get accessing individual apps
         # E.g.: http://store.steampowered.com/api/appdetails?appids=10
-        app_d1 = {"1": {"success": False}}
-        app_d2 = {"2": {"success": False}}
-        app_d3 = {"3": {"success": True, "data": {"test": {}}}}
         fake_r1 = mock.Mock()
         fake_r2 = mock.Mock()
         fake_r3 = mock.Mock()
-        fake_r1.json.return_value = app_d1
-        fake_r2.json.return_value = app_d2
-        fake_r3.json.return_value = app_d3
+        fake_r1.json.return_value = {"1": {"success": False}}
+        fake_r2.json.return_value = {"2": {"success": False}}
+        fake_r3.json.return_value = {"3": {"success": True,
+                                           "data": {"test": {}}}}
         mock_get.side_effect = [fake_r1, fake_r2, fake_r3]
         json_data = self.app._choose_complete_json(dict_list)
 
@@ -200,7 +197,8 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         fake_r2.json.assert_called_once()
         fake_r3.json.assert_called_once()
         # _choose_complete_json() returns only relevant data, hence keys.
-        self.assertEqual(app_d3["3"]["data"], json_data)
+        self.assertEqual(
+            {"3": {"success": True, "data": {"test": {}}}}["3"]["data"], json_data)
         mock_config.assert_called()
         self.assertEqual(mock_config.call_count, 2)
         mock_get.assert_called()
@@ -219,10 +217,9 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         mock_config.side_effect = ["doesn't matter", "doesn't matter"]
         # Dictionaries that we get from a list of all apps
         # (http://api.steampowered.com/ISteamApps/GetAppList/v0002/)
-        applist_d1 = {"appid": 1, "name": "test"}
-        applist_d2 = {"appid": 2, "name": "test"}
-        applist_d3 = {"appid": 3, "name": "test"}
-        dict_list = [applist_d1, applist_d2, applist_d3]
+        dict_list = [{"appid": 1, "name": "test"},
+                     {"appid": 2, "name": "test"},
+                     {"appid": 3, "name": "test"}]
         # Stub dictionary similar to what we get accessing individual apps
         # E.g.: http://store.steampowered.com/api/appdetails?appids=10
         app_d1 = {"1": {"success": False}}
@@ -256,11 +253,9 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         """
 
         mock_config.side_effect = ["doesn't matter", "doesn't matter"]
-        applist_dict = {"appid": 1, "name": "test"}
-        dict_list = [applist_dict, ]
-        app_dict = {"1": {"success": False}}
+        dict_list = [{"appid": 1, "name": "test"}, ]
         fake_response = mock.Mock()
-        fake_response.json.return_value = app_dict
+        fake_response.json.return_value = {"1": {"success": False}}
         mock_get.return_value = fake_response
         json_data = self.app._choose_complete_json(dict_list)
 
@@ -287,7 +282,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
     #     expected_id = 388620
     #     app.find_app(url, title=title, region='uk')
     #
-    #     self.assertEqual(expected_id, app.appid)
+    #     self.assertEqual(expected_id, app.appID)
 
 
 class SteamAppAssignInfoTests(unittest.TestCase):
@@ -335,8 +330,8 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         necessarily have some of the usual information.
         """
 
-        key = 'detailed_description'
-        value = self.app._get_value(self.response, key)
+        value = self.app._get_value(json_data=self.response,
+                                    key='detailed_description')
 
         self.assertFalse(value)
 
@@ -363,7 +358,6 @@ class SteamAppAssignInfoTests(unittest.TestCase):
 
         outer_key = 'price'
         inner_key = 'currency'
-
         value = self.app._get_nested_value(self.response, outer_key, inner_key)
 
         self.assertFalse(value)
@@ -379,7 +373,6 @@ class SteamAppAssignInfoTests(unittest.TestCase):
 
         outer_key = 'price_overview'
         inner_key = 'price'
-
         value = self.app._get_nested_value(self.response, outer_key, inner_key)
 
         self.assertFalse(value)
@@ -401,22 +394,22 @@ class SteamAppAssignInfoTests(unittest.TestCase):
         """ Ensures _assign_json_info() assigns all kinds of info. """
 
         self.app._assign_steam_info(self.response)
-        expected_appid = self.response['steam_appid']
+        expected_app_id = self.response['steam_appid']
         expected_title = self.response['name']
         score = self.response['metacritic']['score']
-        desc = self.response['short_description']
+        description = self.response['short_description']
         price = self.response['price_overview']['initial']
-        fprice = self.response['price_overview']['final']
-        cur = self.response['price_overview']['currency']
+        final_price = self.response['price_overview']['final']
+        currency = self.response['price_overview']['currency']
         expected_date = self.response['release_date']['date']
 
-        self.assertEqual(expected_appid, self.app.appID)
+        self.assertEqual(expected_app_id, self.app.appID)
         self.assertEqual(expected_title, self.app.title)
         self.assertEqual(score, self.app.metacritic)
-        self.assertEqual(desc, self.app.description)
+        self.assertEqual(description, self.app.description)
         self.assertEqual(price, self.app.initial_price)
-        self.assertEqual(fprice, self.app.final_price)
-        self.assertEqual(cur, self.app.currency)
+        self.assertEqual(final_price, self.app.final_price)
+        self.assertEqual(currency, self.app.currency)
         self.assertEqual(expected_date, self.app.release_date)
 
     def test_should_not_assign_currency_when_no_price_overview(self):
@@ -494,8 +487,8 @@ class ScrapingTests(unittest.TestCase):
         """ Ensures that when everything is ok, string object is returned. """
 
         text = "pretend this is html"
-        key = 'a'
-        value = 'b'
+        key = 'test_age_key'
+        value = 'test_age_value'
         m_config.side_effect = [key, value]
         mocked_response = mock.Mock()
         mocked_response.text = text
@@ -534,8 +527,7 @@ class ScrapingTests(unittest.TestCase):
         Ensures that undefined html does not break the function.
         """
 
-        html = None
-        reviews = self.app._extract_review_text(html)
+        reviews = self.app._extract_review_text(html=None)
 
         self.assertFalse(reviews)
 
@@ -630,8 +622,7 @@ class ScrapingTests(unittest.TestCase):
         Ensure that when no review lines are given function does not break.
         """
 
-        reviews = None
-        scores = self.app._extract_app_scores(reviews)
+        scores = self.app._extract_app_scores(reviews=None)
 
         self.assertFalse(scores)
 
@@ -756,19 +747,19 @@ class IsThereAnyDealAPITests(unittest.TestCase):
         self.app = SteamApp()
 
     @mock.patch('steamCLI.steamapp.Config.get_value')
-    def test_should_construct_url_with_default_region_without(self, mock_conf):
+    def test_should_create_url_with_default_region_with_missing(self, mock_c):
         """ Ensure that given no region, default is used. """
 
         region = 'uk'
         mock_key = 'mock_key'
         mock_url = 'www.example.com/mock/url/[region]'
         mock_url_region = mock_url.replace('[region]', region)
-        mock_conf.side_effect = [region, mock_key, mock_url]
+        mock_c.side_effect = [region, mock_key, mock_url]
         url = self.app._construct_itad_url("test", region='')
 
         self.assertEqual(mock_url_region, url)
-        mock_conf.assert_called()
-        self.assertEqual(mock_conf.call_count, 3)
+        mock_c.assert_called()
+        self.assertEqual(mock_c.call_count, 3)
 
     @mock.patch('steamCLI.steamapp.Config.get_value')
     def test_should_construct_proper_url_with_given_title(self, mocked_config):
@@ -778,10 +769,9 @@ class IsThereAnyDealAPITests(unittest.TestCase):
         """
 
         title = "test_title"
-        mock_key = 'mock_key'
         mock_url = 'www.example.com/mock/url/[title]'
         mock_url_title = mock_url.replace('[title]', title)
-        mocked_config.side_effect = [mock_key, mock_url]
+        mocked_config.side_effect = ['mock_key', mock_url]
         url = self.app._construct_itad_url(title, region="eu")
 
         self.assertEqual(mock_url_title, url)

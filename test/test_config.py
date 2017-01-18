@@ -41,7 +41,7 @@ class ConfigTests(unittest.TestCase):
         needed for this application).
         """
 
-        test_path = 'rooty/root/'
+        test_path = '/rooty/root/'
         mocked_isfile.return_value = True
         config = Config(root=test_path)
 
