@@ -14,15 +14,14 @@ low). For that, you need register your app and request an API key. You can do
   _api_key_ in **_IsThereAnyDealAPI_** section to your API key. 
  
 ## Future
-However, there is much room for improvement:
-
 **Code-wise:**
- - Creating more tests to ensure everything works properly.
+ - More tests to ensure everything works properly.
  - Refactoring the code to reduce code duplication and increase maintainability.
  - Introducing parallel requests (most likely candidate: do scraping and 
  lowest historical price search at the same time) to reduce waiting.
- - Figuring out what ITAD uses to process titles so that non-latin letters 
- can be represented properly (e.g., Russian alphabet).
+ - Figuring out what the hell ITAD uses to process titles so that non-latin letters 
+ can be represented properly (e.g., Russian alphabet). Also, wrapping my head around 
+ their logic of omitting some words (like 'the') but not the others (like 'a', 'an').
 
 **Functionality:**
  - Showing whether the game has co-op, multi-player, controller support.
