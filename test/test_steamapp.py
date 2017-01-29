@@ -15,6 +15,20 @@ MOCK_DICT = {"appid": 8, "name": "winui2"}
 MOCK_DATA = {"8": {"success": True, "data": {}}}
 
 
+class SteamAppConstructionTests(unittest.TestCase):
+    """ Ensures SteamApp can be properly initialized. """
+
+    def test_should_raise_FileNotFoundError(self):
+        """
+        Ensures that SteamApp cannot be initialised without a
+        valid config, as it is a cornerstone of the app.
+        """
+
+        with self.assertRaises(FileNotFoundError):
+            SteamApp(config=None)
+
+
+
 class SteamAppFetchTextAssignIDTests(unittest.TestCase):
     """ Tests related to functionality necessary to find app id. """
 
@@ -293,7 +307,7 @@ class SteamAppAssignInfoTests(unittest.TestCase):
     def setUp(self):
         self.id = 1
         self.url = 'http://api.example.com/test/'
-        self.app = SteamApp()
+        self.app = SteamApp(config="stubConfig")
         self.app.appID = self.id
 
         self.response = {

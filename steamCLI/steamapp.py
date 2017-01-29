@@ -13,6 +13,9 @@ class SteamApp:
         values to all of them.
         """
 
+        if not config:
+            raise FileNotFoundError("Configuration file was not found.")
+
         self.config = config
 
         # Key information
