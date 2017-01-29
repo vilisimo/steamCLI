@@ -744,25 +744,25 @@ class IsThereAnyDealAPITests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.app = SteamApp()
+        from steamCLI.config import Config
+        self.config = mock.Mock(Config)
+        self.app = SteamApp(self.config)
 
-    @mock.patch('steamCLI.steamapp.Config.get_value')
-    def test_should_create_url_with_default_region_with_missing(self, mock_c):
+    def test_should_create_url_with_default_region_with_missing(self):
         """ Ensure that given no region, default is used. """
 
         region = 'uk'
         mock_key = 'mock_key'
         mock_url = 'www.example.com/mock/url/[region]'
         mock_url_region = mock_url.replace('[region]', region)
-        mock_c.side_effect = [region, mock_key, mock_url]
+        self.config.get_value.side_effect = [region, mock_key, mock_url]
         url = self.app._construct_itad_url("test", region='')
 
         self.assertEqual(mock_url_region, url)
-        mock_c.assert_called()
-        self.assertEqual(mock_c.call_count, 3)
+        self.config.get_value.assert_called()
+        self.assertEqual(self.config.get_value.call_count, 3)
 
-    @mock.patch('steamCLI.steamapp.Config.get_value')
-    def test_should_construct_proper_url_with_given_title(self, mocked_config):
+    def test_should_construct_proper_url_with_given_title(self):
         """
         Ensure a url is constructed properly - title is in lower case,
         etc - when _construct_itad_url is called.
@@ -771,25 +771,28 @@ class IsThereAnyDealAPITests(unittest.TestCase):
         title = "test_title"
         mock_url = 'www.example.com/mock/url/[title]'
         mock_url_title = mock_url.replace('[title]', title)
-        mocked_config.side_effect = ['mock_key', mock_url]
+        self.config.get_value.side_effect = ['mock_key', mock_url]
         url = self.app._construct_itad_url(title, region="eu")
 
         self.assertEqual(mock_url_title, url)
-        mocked_config.assert_called()
-        self.assertEqual(mocked_config.call_count, 2)
+        self.config.get_value.assert_called()
+        self.assertEqual(self.config.get_value.call_count, 2)
 
-    @mock.patch('steamCLI.steamapp.Config', autospec=True)  # left as example
-    def test_should_construct_url_with_given_key(self, mocked_config):
+    # @mock.patch('steamCLI.steamapp.Config', autospec=True)  # left as example
+    # def test_should_construct_url_with_given_key(self, mocked_config):
+    def test_should_construct_url_with_given_key(self):
         """
         Ensure that the key is replaced when _construct_itad_url is called.
         """
+
         mock_key = 'mock_key'
         mock_url = 'www.example.com/mock/url/[key]'
         mock_url_title = mock_url.replace('[key]', mock_key)
-        mocked_config.return_value.get_value.side_effect = [mock_key, mock_url]
+        self.config.get_value.side_effect = [mock_key, mock_url]
         url = self.app._construct_itad_url("placeholder", region="eu")
 
         self.assertEqual(mock_url_title, url)
+        self.assertEqual(self.config.get_value.call_count, 2)
     
     def test_should_not_extract_historical_low_wit_no_title(self):
         """ Ensure that with no title historical low cannot be extracted. """

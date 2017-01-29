@@ -8,11 +8,13 @@ from steamCLI.utils import sanitize_title, calculate_discount
 
 
 class SteamApp:
-    def __init__(self):
+    def __init__(self, config=None):
         """
         Values shown for clarity. In an ideal case, we aim to assign
         values to all of them.
         """
+
+        self.config = config
 
         # Key information
         self.title, self.appID = [None] * 2
@@ -90,20 +92,19 @@ class SteamApp:
         self.historical_low = self._get_value(itad_data, 'price')
         self.historical_shop = self._get_nested_value(itad_data, 'shop', 'name')
 
-    @staticmethod
-    def _construct_itad_url(sanitized_title, region):
+    def _construct_itad_url(self, sanitized_title, region):
         """
         Constructs url conforming to ITAD expectation.
 
         :param region: which region should be used to query ITAD.
         """
 
-        config = Config('steamCLI', 'resources.ini')
+        # config = Config('steamCLI', 'resources.ini')
         if not region:
-            region = config.get_value('SteamRegions', 'default')
+            region = self.config.get_value('SteamRegions', 'default')
 
-        api_key = config.get_value('IsThereAnyDealAPI', 'api_key')
-        app_url = config.get_value('IsThereAnyDealAPI', 'app_url')
+        api_key = self.config.get_value('IsThereAnyDealAPI', 'api_key')
+        app_url = self.config.get_value('IsThereAnyDealAPI', 'app_url')
         url = (app_url.replace('[region]', region)
                       .replace('[key]', api_key)
                       .replace('[title]', sanitized_title))

@@ -11,7 +11,7 @@ def main():
     parser = _create_parser(config)
     args = parser.parse_args()
 
-    app = SteamApp()
+    app = SteamApp(config)
     # Title and id are required, but mutually exclusive -> we can do if else
     if args.title:
         app_title = None
