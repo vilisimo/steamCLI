@@ -3,7 +3,6 @@ import json
 
 from bs4 import BeautifulSoup
 
-from steamCLI.config import Config
 from steamCLI.utils import sanitize_title, calculate_discount
 
 
@@ -99,7 +98,6 @@ class SteamApp:
         :param region: which region should be used to query ITAD.
         """
 
-        # config = Config('steamCLI', 'resources.ini')
         if not region:
             region = self.config.get_value('SteamRegions', 'default')
 
@@ -137,8 +135,7 @@ class SteamApp:
 
         return scores
 
-    @staticmethod
-    def _extract_review_text(html):
+    def _extract_review_text(self, html):
         """
         Extracts recent/overall review text (lines) from html.
 
@@ -160,9 +157,8 @@ class SteamApp:
         if not html:
             return reviews
 
-        config = Config('steamCLI', 'resources.ini')
-        element = config.get_value('SteamWebsite', 'reviews_element')
-        classes = config.get_value('SteamWebsite', 'reviews_class')
+        element = self.config.get_value('SteamWebsite', 'reviews_element')
+        classes = self.config.get_value('SteamWebsite', 'reviews_class')
         app_page = BeautifulSoup(html, "html.parser")
         results = app_page.findAll(element, {'class': classes})
 
@@ -175,8 +171,7 @@ class SteamApp:
 
         return reviews
 
-    @staticmethod
-    def _download_app_html(url):
+    def _download_app_html(self, url):
         """
         Scrapes review scores from the app's Steam page.
 
@@ -187,9 +182,8 @@ class SteamApp:
         if not url:
             return ''
 
-        config = Config('steamCLI', 'resources.ini')
-        age_key = config.get_value('SteamWebsite', 'age_key')
-        age_value = config.get_value('SteamWebsite', 'age_value')
+        age_key = self.config.get_value('SteamWebsite', 'age_key')
+        age_value = self.config.get_value('SteamWebsite', 'age_value')
         age_cookie = {age_key: age_value}
 
         try:
@@ -206,8 +200,7 @@ class SteamApp:
         if not self.appID:
             return ''
 
-        config = Config('steamCLI', 'resources.ini')
-        app_url = config.get_value('SteamWebsite', 'app_page')
+        app_url = self.config.get_value('SteamWebsite', 'app_page')
         url = app_url.replace('[id]', str(self.appID))
 
         return url
@@ -333,8 +326,7 @@ class SteamApp:
 
         return json_data
 
-    @staticmethod
-    def _choose_complete_json(dicts, region=None):
+    def _choose_complete_json(self, dicts, region=None):
         """
         Goes through dictionaries to an app that can be consumed successfully.
         That is, sometimes in Steam app list apps have identical names.
@@ -356,10 +348,9 @@ class SteamApp:
         """
 
         if dicts:
-            config = Config('steamCLI', 'resources.ini')
-            base_url = config.get_value('SteamAPIs', 'appinfo')
+            base_url = self.config.get_value('SteamAPIs', 'appinfo')
             if not region:
-                region = config.get_value('SteamRegions', 'default')
+                region = self.config.get_value('SteamRegions', 'default')
             for d in dicts:
                 appid = d['appid']
                 resource = f'{base_url}{appid}&cc={region}'
