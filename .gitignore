@@ -93,3 +93,6 @@ ENV/
 
 # idea stuff
 .idea/
+
+# Playground file
+temp.py
