@@ -22,6 +22,8 @@ low). For that, you need register your app and request an API key. You can do
  - Figuring out what the hell ITAD uses to process titles so that non-latin letters 
  can be represented properly (e.g., Russian alphabet). Also, wrapping my head around 
  their logic of omitting some words (like 'the') but not the others (like 'a', 'an').
+ - Add type-hints to simplify development and readability.
+ - Refactor print statements out to specialized class _(in progress)_.
 
 **Functionality:**
  - Showing whether the game has co-op, multi-player, controller support.

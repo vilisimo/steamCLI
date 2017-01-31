@@ -1,6 +1,5 @@
 - some of the games have price_in_cents (war of the roses)
 
-
 - assertRaises: some tests add side effect to response.get directly, instead
 of returning a mock object with an error inside
 
