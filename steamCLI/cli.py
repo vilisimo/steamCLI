@@ -2,6 +2,7 @@ import argparse
 
 from steamCLI.config import Config
 from steamCLI.steamapp import SteamApp
+from steamCLI.results import Results
 
 
 def main():
@@ -80,52 +81,13 @@ def _print_application_info(app, args=None, max_chars=79):
     :param max_chars: how many chars there are in a typical line terminal.
     """
 
-    print("\n" + "".center(max_chars, '*'))
-    title = app.title
-    release_date = app.release_date if app.release_date else "no release date"
-    meta = app.metacritic
-    initial = round(app.initial_price / 100, 2) if app.initial_price else "N/A"
-    current = round(app.final_price / 100, 2) if app.final_price else "N/A"
-    currency = app.currency if app.currency else ""
-    discount = app.discount
-
-    title = f"*** {title} ({release_date}) ***"
-    prices = f"{current} {currency} ({discount}% from {initial} {currency})"
-    meta = f"Metacritic score: {meta}"
-    print(title.center(max_chars))
-    print(prices.center(max_chars))
-    print(meta.center(max_chars))
-
+    results = Results(max_chars=max_chars)
+    results.format_steam_info(app)
     if args.scores:
-        print()
-        if not app.overall_count:
-            print("No reviews available".center(max_chars))
-        if app.overall_count:
-            overall_c = app.overall_count
-            overall_p = app.overall_percent
-            reviews = f"{overall_c} overall reviews ({overall_p} positive)"
-            print(reviews.center(max_chars))
-        if app.overall_count and not app.recent_count:
-            print("No recent reviews available".center(max_chars))
-        if app.recent_count:
-            recent_c = app.recent_count
-            recent_p = app.recent_percent
-            reviews = f"{recent_c} recent reviews ({recent_p} positive)"
-            print(reviews.center(max_chars))
-
+        results.format_steam_website_info(app)
     if args.historical_low:
-        print()
-        low = app.historical_low
-        cut = app.historical_cut
-        shop = app.historical_shop
-        h_low = f"Historical low: {low:.2f} {currency} (-{cut}%). Shop: {shop}"
-        print(h_low.center(max_chars))
-
+        results.format_historical_low(app)
     if args.description:
-        description = app.description
-        if len(description) < 1:
-            print("\n" + "Short description unavailable.".center(max_chars))
-        else:
-            print("\n" + f"{description}".center(max_chars))
+        results.format_description(app)
 
-    print("".center(max_chars, "*") + "\n")
+    results.print_results()
