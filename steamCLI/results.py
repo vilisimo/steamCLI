@@ -58,6 +58,15 @@ class Results:
 
         return self._center_text(self.result)
 
+    def format_description(self, app: SteamApp) -> str:
+        self.result.append('\n')
+        if app.description:
+            self.result.append(app.description)
+        else:
+            self.result.append("Short description unavailable")
+
+        return self._center_text(self.result)
+
     def _center_text(self, text: list) -> str:
         """
         Helper method that centers given text.

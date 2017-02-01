@@ -1,7 +1,5 @@
 import unittest
 
-from unittest import mock
-
 from steamCLI.results import Results
 from steamCLI.steamapp import SteamApp
 
@@ -52,10 +50,10 @@ class ResultTest(unittest.TestCase):
         expected.append('N/A (0% from N/A)')
         expected.append('Metacritic score: None')
 
-        self.assertEqual(result, '\n'.join(ln.center(79) for ln in expected))
+        self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
 
     def test_app_scores_no_missing_info(self):
-        """ Ensure that app scores are formatted correctly. """
+        """ Ensures that app scores are formatted correctly. """
 
         self.app.overall_count = '1000'
         self.app.overall_percent = '99%'
@@ -67,20 +65,20 @@ class ResultTest(unittest.TestCase):
         expected.append('100 recent reviews (99% positive)')
         result = self.results.format_steam_website_info(self.app)
 
-        self.assertEqual(result, '\n'.join(ln.center(79) for ln in expected))
+        self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
 
     def test_app_scores_missing_all_info(self):
-        """ Ensure that app scores are reported missing. """
+        """ Ensures that app scores are reported missing. """
 
         expected = list()
         expected.append('\n')
         expected.append("No overall reviews available")
         result = self.results.format_steam_website_info(self.app)
 
-        self.assertEqual(result, '\n'.join(ln.center(79) for ln in expected))
+        self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
 
     def test_app_scores_recent_missing(self):
-        """ Ensure that recent app scores are reported missing. """
+        """ Ensures that recent app scores are reported missing. """
 
         self.app.overall_count = '1000'
         self.app.overall_percent = '99%'
@@ -90,10 +88,10 @@ class ResultTest(unittest.TestCase):
         expected.append('No recent reviews available')
         result = self.results.format_steam_website_info(self.app)
 
-        self.assertEqual(result, '\n'.join(ln.center(79) for ln in expected))
+        self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
 
     def test_app_scores_overall_missing(self):
-        """ Ensure that overall app scores are reported missing. """
+        """ Ensures that overall app scores are reported missing. """
 
         self.app.recent_count = '1000'
         self.app.recent_percent = '99%'
@@ -103,22 +101,28 @@ class ResultTest(unittest.TestCase):
         expected.append('1000 recent reviews (99% positive)')
         result = self.results.format_steam_website_info(self.app)
 
-        self.assertEqual(result, '\n'.join(ln.center(79) for ln in expected))
+        self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
 
-        # if args.scores:
-        #     print()
-        #     if not app.overall_count:
-        #         print("No reviews available".center(max_chars))
-        #     if app.overall_count:
-        #         overall_c = app.overall_count
-        #         overall_p = app.overall_percent
-        #         reviews = f"{overall_c} overall reviews ({overall_p} positive)"
-        #         print(reviews.center(max_chars))
-        #     if app.overall_count and not app.recent_count:
-        #         print("No recent reviews available".center(max_chars))
-        #     if app.recent_count:
-        #         recent_c = app.recent_count
-        #         recent_p = app.recent_percent
-        #         reviews = f"{recent_c} recent reviews ({recent_p} positive)"
-        #         print(reviews.center(max_chars))
+    def test_format_description_with_valid_description(self):
+        """ Ensures that description is properly formatted. """
 
+        self.app.description = "Test Description"
+        expected = list()
+        expected.append('\n')
+        expected.append("Test Description")
+        result = self.results.format_description(self.app)
+
+        self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
+
+    def test_format_description_with_missing_description(self):
+        """
+        Ensures that given non-existent description, user is informed
+        about it.
+        """
+
+        expected = list()
+        expected.append('\n')
+        expected.append("Short description unavailable")
+        result = self.results.format_description(self.app)
+
+        self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
