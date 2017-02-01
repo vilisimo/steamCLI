@@ -103,6 +103,44 @@ class ResultTest(unittest.TestCase):
 
         self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
 
+    def test_format_historical_low_valid_inputs(self):
+        """
+        Ensure that information on historical low prices is formatted
+        properly.
+        """
+
+        self.app.historical_low = 10.99
+        self.app.historical_cut = 50
+        self.app.currency = 'GBP'
+        self.app.historical_shop = 'Steam'
+        expected = list()
+        expected.append('\n')
+        expected.append("Historical low: 10.99 GBP (-50%). Shop: Steam")
+        result = self.results.format_historical_low(self.app)
+
+        self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
+
+    def test_format_historical_low_nonexistent_inputs(self):
+        """
+        Ensure that when the information is not found, user is presented
+        with a user friendly(-ish) result.
+        """
+
+        expected = list()
+        expected.append('\n')
+        expected.append("Historical low: N/A (-N/A%). Shop: N/A")
+        result = self.results.format_historical_low(self.app)
+
+        self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
+    # if args.historical_low:
+    #     print()
+    #     low = app.historical_low
+    #     cut = app.historical_cut
+    #     shop = app.historical_shop
+    #     h_low = f"Historical low: {low:.2f} {currency} (-{cut}%). Shop: {shop}"
+    #     print(h_low.center(max_chars))
+
+
     def test_format_description_with_valid_description(self):
         """ Ensures that description is properly formatted. """
 

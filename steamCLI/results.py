@@ -22,7 +22,7 @@ class Results:
                    else 'N/A')
         current = (round(app.final_price / 100, 2) if app.final_price
                    else 'N/A')
-        currency = f' {app.currency}' if app.currency else ""
+        currency = f' {app.currency}' if app.currency else ''
 
         self.result.append(f'*** {app.title} ({rel_date}) ***')
         self.result.append(f'{current}{currency} ({app.discount}% '
@@ -58,12 +58,39 @@ class Results:
 
         return self._center_text(self.result)
 
+    def format_historical_low(self, app: SteamApp) -> str:
+        """
+        Formats information on historical low prices of the given application.
+
+        :param app: steam application from which info has to be formatted.
+        :return: formatted string.
+        """
+
+        self.result.append('\n')
+
+        lowest = f'{app.historical_low:.2f}' if app.historical_low else 'N/A'
+        currency = f' {app.currency}' if app.currency else ''
+        cut = app.historical_cut if app.historical_cut else 'N/A'
+        shop = app.historical_shop if app.historical_shop else 'N/A'
+
+        self.result.append(f'Historical low: {lowest}{currency} (-{cut}%). '
+                           f'Shop: {shop}')
+
+        return self._center_text(self.result)
+
     def format_description(self, app: SteamApp) -> str:
+        """
+        Formats given application's description.
+
+        :param app: steam application from which info has to be formatted.
+        :return: formatted string.
+        """
+
         self.result.append('\n')
         if app.description:
             self.result.append(app.description)
         else:
-            self.result.append("Short description unavailable")
+            self.result.append('Short description unavailable')
 
         return self._center_text(self.result)
 
