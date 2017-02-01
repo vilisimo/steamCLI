@@ -132,14 +132,6 @@ class ResultTest(unittest.TestCase):
         result = self.results.format_historical_low(self.app)
 
         self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
-    # if args.historical_low:
-    #     print()
-    #     low = app.historical_low
-    #     cut = app.historical_cut
-    #     shop = app.historical_shop
-    #     h_low = f"Historical low: {low:.2f} {currency} (-{cut}%). Shop: {shop}"
-    #     print(h_low.center(max_chars))
-
 
     def test_format_description_with_valid_description(self):
         """ Ensures that description is properly formatted. """
@@ -164,3 +156,4 @@ class ResultTest(unittest.TestCase):
         result = self.results.format_description(self.app)
 
         self.assertEqual('\n'.join(ln.center(79) for ln in expected), result)
+

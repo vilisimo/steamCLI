@@ -2,12 +2,12 @@ from steamCLI.steamapp import SteamApp
 
 
 class Results:
-    def __init__(self, result: list=None, center: int=79):
+    def __init__(self, result: list=None, max_chars: int=79):
         if result is None:
             self.result = []
         else:
             self.result = result
-        self.center = center
+        self.max_chars = max_chars
 
     def format_steam_info(self, app: SteamApp) -> str:
         """
@@ -94,6 +94,11 @@ class Results:
 
         return self._center_text(self.result)
 
+    def print_results(self):
+        print("\n" + "".center(self.max_chars, '*'))
+        print(self._center_text(self.result))
+        print("\n" + "".center(self.max_chars, '*') + '\n')
+
     def _center_text(self, text: list) -> str:
         """
         Helper method that centers given text.
@@ -102,4 +107,4 @@ class Results:
         :return: centered string.
         """
 
-        return '\n'.join(line.center(self.center) for line in text)
+        return '\n'.join(line.center(self.max_chars) for line in text)
