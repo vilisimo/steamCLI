@@ -39,7 +39,7 @@ class Results:
         :return: formatted string.
         """
 
-        self.result.append('\n')
+        self.result.append('-')
 
         if app.overall_count:
             self.result.append(f'{app.overall_count} overall reviews '
@@ -66,7 +66,7 @@ class Results:
         :return: formatted string.
         """
 
-        self.result.append('\n')
+        self.result.append('-')
 
         lowest = f'{app.historical_low:.2f}' if app.historical_low else 'N/A'
         currency = f' {app.currency}' if app.currency else ''
@@ -86,7 +86,8 @@ class Results:
         :return: formatted string.
         """
 
-        self.result.append('\n')
+        self.result.append('-')
+
         if app.description:
             self.result.append(app.description)
         else:
@@ -95,7 +96,7 @@ class Results:
         return self._center_text(self.result)
 
     def print_results(self):
-        print("\n" + "".center(self.max_chars, '*'))
+        print("\n" + "".center(self.max_chars, '*') + '\n')
         print(self._center_text(self.result))
         print("\n" + "".center(self.max_chars, '*') + '\n')
 
