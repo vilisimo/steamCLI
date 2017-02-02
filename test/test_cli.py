@@ -65,7 +65,7 @@ class ParserTests(unittest.TestCase):
     def test_should_not_allow_region_not_in_the_list(self):
         """ Make sure that entering invalid region raises an error. """
 
-        with mock.patch('steamCLI.cli.argparse.ArgumentParser._print_message',
+        with mock.patch('steamCLI.cli.ArgumentParser._print_message',
                         mock.MagicMock()):
             with self.assertRaises((ArgumentError, SystemExit)):
                 region = 'as'

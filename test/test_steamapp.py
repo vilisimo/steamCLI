@@ -74,7 +74,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertEqual(RESOURCE, actual)
         self.assertIn(mock.call(self.url), mock_get.call_args_list)
 
-    @mock.patch.object(SteamApp, '_choose_complete_json')
+    @mock.patch.object(SteamApp, '_pick_complete_json')
     def test_should_not_extract_app_dictionary_when_no_such_app(self, m_func):
         """ Ensures that when nothing is found, None is returned. """
 
@@ -85,7 +85,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertFalse(result)
         m_func.assert_called_once()
 
-    @mock.patch.object(SteamApp, '_choose_complete_json')
+    @mock.patch.object(SteamApp, '_pick_complete_json')
     def test_should_extract_relevant_app_data(self, mock_choose):
         """
         Ensures _extract_app_dictionary() manages to find relevant dictionaries.
@@ -97,7 +97,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertEqual(MOCK_DATA, result)
         mock_choose.assert_called_once()
 
-    @mock.patch.object(SteamApp, '_choose_complete_json')
+    @mock.patch.object(SteamApp, '_pick_complete_json')
     def test_should_extract_app_dictionary_case_insensitive(self, mock_choose):
         """ Ensure that _extract_app_dictionary() is not case sensitive. """
 
@@ -108,7 +108,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertEqual(MOCK_DATA, result)
         mock_choose.assert_called_once()
 
-    @mock.patch.object(SteamApp, '_choose_complete_json')
+    @mock.patch.object(SteamApp, '_pick_complete_json')
     def test_should_extract_app_dictionary_given_id(self, mock_choose):
         """
         Ensure that _extract_app_dictionary() works not only with title, but with
@@ -121,7 +121,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         self.assertEqual(MOCK_DATA, result)
         mock_choose.assert_called_once()
 
-    @mock.patch.object(SteamApp, '_choose_complete_json')
+    @mock.patch.object(SteamApp, '_pick_complete_json')
     def test_should_not_get_app_dict_with_id_when_no_such_id(self, mock_choose):
         """ Ensure that when the ID is wrong, nothing is found. """
 
@@ -206,12 +206,12 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         fake_r3.json.return_value = {"3": {"success": True,
                                            "data": {"test": {}}}}
         mock_get.side_effect = [fake_r1, fake_r2, fake_r3]
-        json_data = self.app._choose_complete_json(dict_list)
+        json_data = self.app._pick_complete_json(dict_list)
 
         fake_r1.json.assert_called_once()
         fake_r2.json.assert_called_once()
         fake_r3.json.assert_called_once()
-        # _choose_complete_json() returns only relevant data, hence keys.
+        # _pick_complete_json() returns only relevant data, hence keys.
         self.assertEqual(
             {"3": {"success": True, "data": {"test": {}}}}["3"]["data"], json_data)
         self.config.get_value.assert_called()
@@ -246,7 +246,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         fake_r2.json.return_value = app_d2
         fake_r3.json.return_value = app_d3
         mock_get.side_effect = [fake_r1, fake_r2, fake_r3]
-        json_data = self.app._choose_complete_json(dict_list)
+        json_data = self.app._pick_complete_json(dict_list)
 
         fake_r1.json.assert_called_once()
         fake_r2.json.assert_called_once()
@@ -270,7 +270,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         fake_response = mock.Mock()
         fake_response.json.return_value = {"1": {"success": False}}
         mock_get.return_value = fake_response
-        json_data = self.app._choose_complete_json(dict_list)
+        json_data = self.app._pick_complete_json(dict_list)
 
         fake_response.json.assert_called_once()
         self.config.get_value.assert_called()
@@ -281,7 +281,7 @@ class SteamAppFetchTextAssignIDTests(unittest.TestCase):
         """ Ensure empty list does not break the function. """
 
         empty_list = []
-        json_data = self.app._choose_complete_json(empty_list)
+        json_data = self.app._pick_complete_json(empty_list)
 
         self.assertFalse(json_data)
 

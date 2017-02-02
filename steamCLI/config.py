@@ -11,7 +11,7 @@ class Config:
     If only get_value() is ever used, class might be an overkill.
     """
 
-    def __init__(self, root=ROOT, *args):
+    def __init__(self, root: str=ROOT, *args: str):
         """
         :param root: project root folder.
         :param *args: folders + file name needed to navigate to the .ini file.
@@ -24,7 +24,7 @@ class Config:
         if not os.path.isfile(self.path):
             raise FileNotFoundError("File does not exist.")
 
-    def get_value(self, section, key):
+    def get_value(self, section: str, key: str) -> str:
         """
         Returns value given a section and a key.
 

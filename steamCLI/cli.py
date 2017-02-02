@@ -1,4 +1,4 @@
-import argparse
+from argparse import ArgumentParser
 
 from steamCLI.config import Config
 from steamCLI.steamapp import SteamApp
@@ -22,6 +22,8 @@ def main():
         print("Gathering price information...")
         app.find_app(origin=app_list, region=args.region, title=app_title)
     else:
+        print(type(args.appid))
+
         print("Gathering price information...")
         app.find_app(origin=app_list, region=args.region, app_id=args.appid)
 
@@ -40,7 +42,7 @@ def main():
         print("Application was not found. Is the supplied information correct?")
 
 
-def _create_parser(config):
+def _create_parser(config: Config) -> ArgumentParser:
     """
     Initializes parser with values from a config file.
     """
@@ -49,7 +51,7 @@ def _create_parser(config):
     default_region = config.get_value('SteamRegions', 'default')
     regions = config.get_value('SteamRegions', 'regions').split(',')
 
-    parser = argparse.ArgumentParser(description=app_description)
+    parser = ArgumentParser(description=app_description)
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-t", "--title", action="store_true",
@@ -72,7 +74,7 @@ def _create_parser(config):
     return parser
 
 
-def _print_application_info(app, args=None, max_chars=79):
+def _print_application_info(app: SteamApp, args=None, max_chars: int=79):
     """
     Prints information about the given app.
 

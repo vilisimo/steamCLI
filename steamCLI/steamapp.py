@@ -2,6 +2,7 @@ import requests
 import json
 
 from bs4 import BeautifulSoup
+from typing import List, Union
 
 from steamCLI.utils import sanitize_title, calculate_discount
 
@@ -32,7 +33,8 @@ class SteamApp:
         self.historical_low, self.historical_cut = [None]*2
         self.historical_shop = None
 
-    def find_app(self, origin, title=None, app_id=None, region=None):
+    def find_app(self, origin: str, title: str=None, app_id: int=None,
+                 region: str=None):
         """
         Finds an app corresponding to a given title/id. Assigns the object
         information corresponding to the apps.
@@ -76,7 +78,7 @@ class SteamApp:
             self.recent_count = recent[0]
             self.recent_percent = recent[1]
 
-    def extract_historical_low(self, region):
+    def extract_historical_low(self, region: str):
         """ 
         Extracts historical low price by calling Is There Any Deal API.
 
@@ -94,7 +96,7 @@ class SteamApp:
         self.historical_low = self._get_value(itad_data, 'price')
         self.historical_shop = self._get_nested_value(itad_data, 'shop', 'name')
 
-    def _construct_itad_url(self, sanitized_title, region):
+    def _construct_itad_url(self, sanitized_title: str, region: str):
         """
         Constructs url conforming to ITAD expectation.
 
@@ -112,7 +114,7 @@ class SteamApp:
         return url
 
     @staticmethod
-    def _extract_app_scores(reviews):
+    def _extract_app_scores(reviews: List[str]) -> List[str]:
         """
         Extracts scores from review line(s).
 
@@ -138,7 +140,7 @@ class SteamApp:
 
         return scores
 
-    def _extract_review_text(self, html):
+    def _extract_review_text(self, html: str) -> List[str]:
         """
         Extracts recent/overall review text (lines) from html.
 
@@ -165,8 +167,7 @@ class SteamApp:
         app_page = BeautifulSoup(html, "html.parser")
         results = app_page.findAll(element, {'class': classes})
 
-        # Results might be empty. This is fine for us. It means app does
-        # not have any reviews.
+        # Results might be empty. This is fine = app does not have any reviews.
         while results:
             result = results.pop()  # This way recent is last.
             review = ''.join(child.strip() for child in result.children)
@@ -174,7 +175,7 @@ class SteamApp:
 
         return reviews
 
-    def _download_app_html(self, url):
+    def _download_app_html(self, url: str) -> str:
         """
         Scrapes review scores from the app's Steam page.
 
@@ -197,8 +198,12 @@ class SteamApp:
         else:
             return response.text
 
-    def _construct_app_url(self):
-        """ Constructs steam page URL that is used for web scraping. """
+    def _construct_app_url(self) -> str:
+        """
+        Constructs steam page URL that is used for web scraping.
+
+        :return: app url with an assigned id
+        """
 
         if not self.appID:
             return ''
@@ -208,8 +213,12 @@ class SteamApp:
 
         return url
 
-    def _assign_steam_info(self, app_data=None):
-        """ Retrieves and assigns information about an app to the object. """
+    def _assign_steam_info(self, app_data: dict=None):
+        """
+        Retrieves and assigns information about an app to the object.
+
+        :param app_data: dictionary from steam api that contains data on app
+        """
 
         if not app_data:
             return
@@ -230,7 +239,7 @@ class SteamApp:
         self.discount = calculate_discount(self.initial_price, self.final_price)
 
     @staticmethod
-    def _get_value(json_data, key):
+    def _get_value(json_data: dict, key: str) -> str:
         """
         Gets a key value from a given JSON.
 
@@ -251,7 +260,9 @@ class SteamApp:
         return value
 
     @staticmethod
-    def _get_nested_value(json_data, outer_key, inner_key):
+    def _get_nested_value(json_data: dict,
+                          outer_key: str,
+                          inner_key: str) -> Union[str, int]:
         """
         Gets a specified value from a given JSON.
 
@@ -273,7 +284,7 @@ class SteamApp:
         return json_data[outer_key][inner_key]
 
     @staticmethod
-    def _fetch_resource(origin, text=True):
+    def _fetch_resource(origin: str, text: str=True) -> Union[str, dict]:
         """
         Gets the textual JSON representation from a given link.
 
@@ -292,25 +303,30 @@ class SteamApp:
             else:
                 return response.json()
 
-    def _extract_app_dictionary(self, json_text, title=None, app_id=None,
-                                region=None):
+    def _extract_app_dictionary(self, json_text: str, title: str=None,
+                                app_id: int=None, region: str=None) -> dict:
         """
         Extracts dict in which app resides from JSON response by loading textual
         representation of JSON and applying private inner function to it over
         and over again.
 
-        :params json_text: textual representation of JSON object.
+        :param json_text: textual representation of JSON object.
+        :param title: title of the to-be-found app
+        :param app_id: id of the to-be-found app
+        :param region: region for which the data should be fetched
         :return: dictionary that has the relevant information about an app.
         """
 
         app_dicts = []
 
-        def _decode_dictionary(dictionary):
+        def _decode_dictionary(dictionary: dict) -> dict:
             """
             Search for key with "name" value that == target application name.
             If found, it means the dictionary is the one we are interested in.
 
-            Typical input: {"appid": int, "name": str}
+            Typical input:
+
+            :param dictionary: app dictionary (i.e. {"appid": int, "name": str})
             """
 
             try:
@@ -325,24 +341,27 @@ class SteamApp:
             return dictionary
 
         json.loads(json_text, object_hook=_decode_dictionary)
-        json_data = self._choose_complete_json(app_dicts, region=region)
+        json_data = self._pick_complete_json(app_dicts, region=region)
 
         return json_data
 
-    def _choose_complete_json(self, dicts, region=None):
+    def _pick_complete_json(self, dicts: List[dict], region: str=None) -> dict:
         """
         Goes through dictionaries to an app that can be consumed successfully.
-        That is, sometimes in Steam app list apps have identical names.
-        However, inputting corresponding ids to
-            http://store.steampowered.com/api/appdetails?appids=id
-        does not give any information back. E.g., there are 3 dictionaries
-        that have their title as "Borderlands", with corresponding IDs as
-        8950, 8980 and 8989. However, only 8980 responds to queries. All
-        others return {"[appid]":{"success":false}}, which is not useful.
-        Unfortunately, it is impossible to know which one will return a
-        useful response (at least without resorting to 3rd party APIs).
-        Hence, in worst case, each and every one of dicts will have to be
-        checked, potentially slowing the application significantly.
+
+        That is, sometimes in Steam app list apps have identical names and
+        querying API* with corresponding ids does not give any information
+        back.
+
+        E.g., there are 3 dictionaries that have their title as "Borderlands",
+        with corresponding IDs as 8950, 8980 and 8989. However, only 8980
+        responds to queries. All others return {"[appid]":{"success":false}},
+        which is not useful. Unfortunately, it is impossible to know which
+        one will return a useful response (at least without resorting to 3rd
+        party APIs). Hence, in worst case, each and every one of dicts will
+        have to be checked, potentially slowing the application significantly.
+
+        *http://store.steampowered.com/api/appdetails?appids=id
 
         :param dicts: app dicts to be checked. Typical input:
                       {"appid": int, "name": str}
@@ -361,5 +380,3 @@ class SteamApp:
                 data = response.json()
                 if data[str(appid)]['success']:
                     return data[str(appid)]['data']
-
-        return None
