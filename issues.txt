@@ -1,12 +1,5 @@
 - some of the games have price_in_cents (war of the roses)
 
-- assertRaises: some tests add side effect to response.get directly, instead
-of returning a mock object with an error inside
-
-- a lot of private methods have config in it. Perhaps it would be better to
-remove it, move those to optional arguments and have the caller deal with the
- logic. This way, methods would be a bit more general.
-
 - review scraping and ITAD API calls could be made in parallel.
 
 - maybe there should be a db that has all titles/app ids. It could be used to
