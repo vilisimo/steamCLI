@@ -284,7 +284,7 @@ class SteamApp:
         return json_data[outer_key][inner_key]
 
     @staticmethod
-    def _fetch_resource(origin: str, text: str=True) -> Union[str, dict]:
+    def _fetch_resource(origin: str, text: bool=True) -> Union[str, dict]:
         """
         Gets the textual JSON representation from a given link.
 

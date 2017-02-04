@@ -6,13 +6,14 @@ from steamCLI.results import Results
 
 
 def main():
+    results = Results(max_chars=79)
     config = Config('steamCLI', 'resources.ini')
     app_list = config.get_value('SteamAPIs', 'applist')
 
     parser = _create_parser(config)
     args = parser.parse_args()
 
-    app = SteamApp(config)
+    app = SteamApp(config=config)
     # Title and id are required, but mutually exclusive -> we can do if else
     if args.title:
         app_title = None
@@ -22,21 +23,25 @@ def main():
         print("Gathering price information...")
         app.find_app(origin=app_list, region=args.region, title=app_title)
     else:
-        print(type(args.appid))
-
         print("Gathering price information...")
         app.find_app(origin=app_list, region=args.region, app_id=args.appid)
+
+    results.format_steam_info(app)
+    if args.description:
+        results.format_description(app)
 
     if app.appID:
         if args.scores:
             print("Scraping reviews...")
             app.scrape_app_page()
+            results.format_steam_website_info(app)
 
         if args.historical_low:
             print("Leafing through history books...")
             app.extract_historical_low(args.region)
+            results.format_historical_low(app)
 
-        _print_application_info(app, args)
+        results.print_results()
 
     else:
         print("Application was not found. Is the supplied information correct?")
@@ -72,24 +77,3 @@ def _create_parser(config: Config) -> ArgumentParser:
                         help=config.get_value('HelpText', 'historical_help'))
 
     return parser
-
-
-def _print_application_info(app: SteamApp, args=None, max_chars: int=79):
-    """
-    Prints information about the given app.
-
-    :param app: app for which info needs to be printed out.
-    :param args: parsed args. Used to determine whether to show info.
-    :param max_chars: how many chars there are in a typical line terminal.
-    """
-
-    results = Results(max_chars=max_chars)
-    results.format_steam_info(app)
-    if args.scores:
-        results.format_steam_website_info(app)
-    if args.historical_low:
-        results.format_historical_low(app)
-    if args.description:
-        results.format_description(app)
-
-    results.print_results()
