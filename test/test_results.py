@@ -16,24 +16,25 @@ class ResultTest(unittest.TestCase):
 
         self.app.title = 'Borderlands'
         self.app.release_date = '10 10 2010'
-        self.app.final_price = 1000
+        self.app.final_price = 100
         self.app.currency = 'GBP'
         self.app.discount = '0'
-        self.app.initial_price = 1000
+        self.app.initial_price = 100
         self.app.metacritic = '99'
+        self.results.format_steam_info(self.app)
+        expected = [f'*** {self.app.title} ({self.app.release_date}) ***',
+                    f'1.0 {self.app.currency} ({self.app.discount}% from 1.0 '
+                    f'{self.app.currency})',
+                    f'Metacritic score: {self.app.metacritic}']
 
-        result = self.results.format_steam_info(self.app)
-
-        expected = list()
-        expected.append(f'*** {self.app.title} ({self.app.release_date}) ***')
-        expected.append(f'10.0 {self.app.currency} ({self.app.discount}% '
-                        f'from 10.0 {self.app.currency})')
-        expected.append(f'Metacritic score: {self.app.metacritic}')
-
-        self.assertEqual(self._center(expected) , result)
+        self.assertEqual(expected, self.results.steam)
 
     def test_steam_info_without_valid_inputs(self):
         """ Ensure that null/empty values are correctly represented. """
+
+        expected = ['*** Borderlands (no release date) ***',
+                    'N/A (0% from N/A)',
+                    'Metacritic score: None']
 
         self.app.title = 'Borderlands'
         self.app.release_date = None
@@ -42,66 +43,55 @@ class ResultTest(unittest.TestCase):
         self.app.initial_price = None
         self.app.currency = None
         self.app.discount = '0'
+        self.results.format_steam_info(self.app)
 
-        result = self.results.format_steam_info(self.app)
-
-        expected = list()
-        expected.append('*** Borderlands (no release date) ***')
-        expected.append('N/A (0% from N/A)')
-        expected.append('Metacritic score: None')
-
-        self.assertEqual(self._center(expected), result)
+        self.assertEqual(expected, self.results.steam)
 
     def test_app_scores_no_missing_info(self):
         """ Ensures that app scores are formatted correctly. """
+
+        expected = ['1000 overall reviews (99% positive)',
+                    '100 recent reviews (99% positive)']
 
         self.app.overall_count = '1000'
         self.app.overall_percent = '99%'
         self.app.recent_count = '100'
         self.app.recent_percent = '99%'
-        expected = list()
-        expected.append('-')
-        expected.append('1000 overall reviews (99% positive)')
-        expected.append('100 recent reviews (99% positive)')
-        result = self.results.format_steam_website_info(self.app)
+        self.results.format_steam_website_info(self.app)
 
-        self.assertEqual(self._center(expected), result)
+        self.assertEqual(expected, self.results.website)
 
     def test_app_scores_missing_all_info(self):
         """ Ensures that app scores are reported missing. """
 
-        expected = list()
-        expected.append('-')
-        expected.append("No overall reviews available")
-        result = self.results.format_steam_website_info(self.app)
+        expected = ["No overall reviews available"]
+        self.results.format_steam_website_info(self.app)
 
-        self.assertEqual(self._center(expected), result)
+        self.assertEqual(expected, self.results.website)
 
     def test_app_scores_recent_missing(self):
         """ Ensures that recent app scores are reported missing. """
 
+        expected = ['1000 overall reviews (99% positive)',
+                    'No recent reviews available']
+
         self.app.overall_count = '1000'
         self.app.overall_percent = '99%'
-        expected = list()
-        expected.append('-')
-        expected.append('1000 overall reviews (99% positive)')
-        expected.append('No recent reviews available')
-        result = self.results.format_steam_website_info(self.app)
+        self.results.format_steam_website_info(self.app)
 
-        self.assertEqual(self._center(expected), result)
+        self.assertEqual(expected, self.results.website)
 
     def test_app_scores_overall_missing(self):
         """ Ensures that overall app scores are reported missing. """
 
+        expected = ['No overall reviews available',
+                    '1000 recent reviews (99% positive)']
+
         self.app.recent_count = '1000'
         self.app.recent_percent = '99%'
-        expected = list()
-        expected.append('-')
-        expected.append('No overall reviews available')
-        expected.append('1000 recent reviews (99% positive)')
-        result = self.results.format_steam_website_info(self.app)
+        self.results.format_steam_website_info(self.app)
 
-        self.assertEqual(self._center(expected), result)
+        self.assertEqual(expected, self.results.website)
 
     def test_format_historical_low_valid_inputs(self):
         """
@@ -109,16 +99,15 @@ class ResultTest(unittest.TestCase):
         properly.
         """
 
+        expected = ['Historical low: 10.99 GBP (-50%)', 'Shop: Steam']
+
         self.app.historical_low = 10.99
         self.app.historical_cut = 50
         self.app.currency = 'GBP'
         self.app.historical_shop = 'Steam'
-        expected = list()
-        expected.append('-')
-        expected.append("Historical low: 10.99 GBP (-50%). Shop: Steam")
-        result = self.results.format_historical_low(self.app)
+        self.results.format_historical_low(self.app)
 
-        self.assertEqual(self._center(expected), result)
+        self.assertEqual(expected, self.results.itad)
 
     def test_format_historical_low_nonexistent_inputs(self):
         """
@@ -126,23 +115,19 @@ class ResultTest(unittest.TestCase):
         with a user friendly(-ish) result.
         """
 
-        expected = list()
-        expected.append('-')
-        expected.append("Historical low: N/A (-N/A%). Shop: N/A")
-        result = self.results.format_historical_low(self.app)
+        expected = ['Historical low: N/A (-N/A%)', 'Shop: N/A']
+        self.results.format_historical_low(self.app)
 
-        self.assertEqual(self._center(expected), result)
+        self.assertEqual(expected, self.results.itad)
 
     def test_format_description_with_valid_description(self):
         """ Ensures that description is properly formatted. """
 
+        expected = "Test Description"
         self.app.description = "Test Description"
-        expected = list()
-        expected.append('-')
-        expected.append("Test Description")
-        result = self.results.format_description(self.app)
+        self.results.format_description(self.app)
 
-        self.assertEqual(self._center(expected), result)
+        self.assertEqual(expected, self.results.description)
 
     def test_format_description_with_missing_description(self):
         """
@@ -150,14 +135,7 @@ class ResultTest(unittest.TestCase):
         about it.
         """
 
-        expected = list()
-        expected.append('-')
-        expected.append("Short description unavailable")
-        result = self.results.format_description(self.app)
+        expected = "Short description unavailable"
+        self.results.format_description(self.app)
 
-        self.assertEqual(self._center(expected), result)
-
-    @staticmethod
-    def _center(expected):
-        return '\n'.join(ln.center(79) for ln in expected)
-
+        self.assertEqual(expected, self.results.description)

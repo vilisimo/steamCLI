@@ -9,7 +9,12 @@ class Results:
             self.result = result
         self.max_chars = max_chars
 
-    def format_steam_info(self, app: SteamApp) -> str:
+        self.description = None
+        self.website = None
+        self.steam = None
+        self.itad = None
+
+    def format_steam_info(self, app: SteamApp):
         """
         Formats information that was gathered from Steam API.
 
@@ -24,14 +29,13 @@ class Results:
                    else 'N/A')
         currency = f' {app.currency}' if app.currency else ''
 
-        self.result.append(f'*** {app.title} ({rel_date}) ***')
-        self.result.append(f'{current}{currency} ({app.discount}% '
-                           f'from {initial}{currency})')
-        self.result.append(f'Metacritic score: {app.metacritic}')
+        self.steam = list()
+        self.steam.append(f'*** {app.title} ({rel_date}) ***')
+        self.steam.append(f'{current}{currency} ({app.discount}% '
+                          f'from {initial}{currency})')
+        self.steam.append(f'Metacritic score: {app.metacritic}')
 
-        return self._center_text(self.result)
-
-    def format_steam_website_info(self, app: SteamApp) -> str:
+    def format_steam_website_info(self, app: SteamApp):
         """
         Formats information that was gathered from Steam website.
 
@@ -39,26 +43,24 @@ class Results:
         :return: formatted string.
         """
 
-        self.result.append('-')
+        self.website = list()
 
         if app.overall_count:
-            self.result.append(f'{app.overall_count} overall reviews '
-                               f'({app.overall_percent} positive)')
+            self.website.append(f'{app.overall_count} overall reviews '
+                                f'({app.overall_percent} positive)')
         else:
-            self.result.append("No overall reviews available")
+            self.website.append("No overall reviews available")
 
         # It makes sense to show absence of recent reviews only if overall
         # reviews are missing as well.
         if app.overall_count and not app.recent_count:
-            self.result.append("No recent reviews available")
+            self.website.append("No recent reviews available")
 
         if app.recent_count:
-            self.result.append(f'{app.recent_count} recent reviews '
-                               f'({app.recent_percent} positive)')
+            self.website.append(f'{app.recent_count} recent reviews '
+                                f'({app.recent_percent} positive)')
 
-        return self._center_text(self.result)
-
-    def format_historical_low(self, app: SteamApp) -> str:
+    def format_historical_low(self, app: SteamApp):
         """
         Formats information on historical low prices of the given application.
 
@@ -66,17 +68,14 @@ class Results:
         :return: formatted string.
         """
 
-        self.result.append('-')
-
         lowest = f'{app.historical_low:.2f}' if app.historical_low else 'N/A'
         currency = f' {app.currency}' if app.currency else ''
         cut = app.historical_cut if app.historical_cut else 'N/A'
         shop = app.historical_shop if app.historical_shop else 'N/A'
 
-        self.result.append(f'Historical low: {lowest}{currency} (-{cut}%). '
-                           f'Shop: {shop}')
-
-        return self._center_text(self.result)
+        self.itad = list()
+        self.itad.append(f'Historical low: {lowest}{currency} (-{cut}%)')
+        self.itad.append(f'Shop: {shop}')
 
     def format_description(self, app: SteamApp) -> str:
         """
@@ -86,19 +85,25 @@ class Results:
         :return: formatted string.
         """
 
-        self.result.append('-')
-
         if app.description:
-            self.result.append(app.description)
+            self.description = app.description
         else:
-            self.result.append('Short description unavailable')
+            self.description = 'Short description unavailable'
 
-        return self._center_text(self.result)
+        return self._center_text([self.description])
 
     def print_results(self):
-        print("\n" + "".center(self.max_chars, '*') + '\n')
-        print(self._center_text(self.result))
-        print("\n" + "".center(self.max_chars, '*') + '\n')
+        print('\n', ''.center(self.max_chars, '*') + '\n')
+        print(self._center_text(self.steam))
+
+        if self.website:
+            print('\n', self._center_text(self.website))
+        if self.itad:
+            print('\n', self._center_text(self.itad))
+        if self.description:
+            print('\n', self.description.center(self.max_chars))
+
+        print('\n', ''.center(self.max_chars, '*') + '\n')
 
     def _center_text(self, text: list) -> str:
         """
