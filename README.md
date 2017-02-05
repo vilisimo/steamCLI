@@ -1,6 +1,6 @@
 ## About
-steamCLI is a command line interface tool that allows a user to search steam 
-for information about the game/app straight form command line. 
+steamCLI is a command line tool that allows a user to search steam 
+for information about the game/app straight from the command line. 
 
 ## Installation
 - Clone the project: `git clone git@github.com:vilisimo/steamCLI.git`
@@ -15,13 +15,8 @@ low). For that, you need register your app and request an API key. You can do
  
 ## Future
 **Code-wise:**
- - More tests to ensure everything works properly.
- - Refactoring the code to reduce code duplication and increase maintainability.
  - Introducing parallel requests (most likely candidate: do scraping and 
  lowest historical price search at the same time) to reduce waiting.
- - Figuring out what the hell ITAD uses to process titles so that non-latin letters 
- can be represented properly (e.g., Russian alphabet). Also, wrapping my head around 
- their logic of omitting some words (like 'the') but not the others (like 'a', 'an').
 
 **Functionality:**
  - Showing whether the game has co-op, multi-player, controller support.
@@ -33,4 +28,6 @@ low). For that, you need register your app and request an API key. You can do
  - Writing up instructions on how to install steamCLI so that it could be 
  called up anywhere from the console by writing something like `>>> steam -t`
   or `>>> steamCLI -t`.
-
+ - Figuring out what the hell ITAD uses to process titles so that non-latin letters 
+ can be represented properly (e.g., Russian alphabet). Also, wrapping my head around 
+ their logic of omitting some words (like 'the') but not the others (like 'a', 'an').
