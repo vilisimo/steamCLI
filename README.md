@@ -1,6 +1,8 @@
 ## About
 steamCLI is a command line tool that allows a user to search steam 
 for information about the game/app straight from the command line. 
+It supports overall and recent ratings, current prices on Steam, historical 
+low price, different currencies and regions.
 
 ## Installation
 - Clone the project: `git clone git@github.com:vilisimo/steamCLI.git`
@@ -21,13 +23,13 @@ low). For that, you need register your app and request an API key. You can do
 **Functionality:**
  - Showing whether the game has co-op, multi-player, controller support.
  - Showing whether the user has the game or not.
- - ...aggregating and showing other useful information from variety of sources.
- 
+
 **Misc**
  - Setting up _setup.py_ so that the steamCLI could be installed through _pip_.
  - Writing up instructions on how to install steamCLI so that it could be 
  called up anywhere from the console by writing something like `>>> steam -t`
-  or `>>> steamCLI -t`.
+  or `>>> steamcli -t`.
  - Figuring out what ITAD uses to process titles so that non-latin letters 
  can be represented properly (e.g., Russian alphabet). 
- - Figuring out their logic of omitting some words (like 'the') but not the others (like 'a', 'an').
+ - Figuring out their logic of omitting some words (like 'the') but not the 
+ others (like 'a', 'an').
