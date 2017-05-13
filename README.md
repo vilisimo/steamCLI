@@ -25,10 +25,15 @@ enter `borderlands` (title is case-insensitive). Example output:
                           9.99 GBP (0% from 9.99 GBP)                          
                               Metacritic score: 81                             
 
-
 ## Installation
-- Ensure you have [Python 3.6](https://www.python.org/downloads/) installed. 
-- Clone the project: `git clone git@github.com:vilisimo/steamCLI.git`
+- Ensure you have [Python 3.6](https://www.python.org/downloads/) installed: 
+`>>> python3 --version` 
+- Clone the project: `>>> git clone git@github.com:vilisimo/steamCLI.git`
+- . __(Recommended)__ Ensure `virtualenvwrapper` is installed: `>>> pip list` 
+or `pip list | grep virtualenvwrapper` if you're on OSX / Linux. 
+  * If it is not, enter `>>> pip install virtualenvwrapper`.
+- . __(Recommended)__ Create virtual environment for the project: 
+`>>> mkvirtualenv -p python3.6 steamCLI`.
 - Install required packages in _requirements.txt_: `pip install -r 
 requirements.txt`
 - Get an API key for Is There Any Deal (if you want to see the historical 
