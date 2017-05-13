@@ -1,3 +1,4 @@
+import argparse
 from argparse import ArgumentParser
 
 from steamCLI.config import Config
@@ -6,43 +7,27 @@ from steamCLI.results import Results
 
 
 def main():
-    results = Results(max_chars=79)
     config = Config('steamCLI', 'resources.ini')
     app_list = config.get_value('SteamAPIs', 'applist')
-
     parser = _create_parser(config)
     args = parser.parse_args()
 
     app = SteamApp(config=config)
-    # Title and id are required, but mutually exclusive -> we can do if else
-    if args.title:
-        app_title = None
-        while not app_title:
-            # Shell eats up special characters such as ', &, etc.
-            app_title = input("Enter title: ").strip()
-        print("Gathering price information...")
-        app.find_app(origin=app_list, region=args.region, title=app_title)
-    else:
-        print("Gathering price information...")
-        app.find_app(origin=app_list, region=args.region, app_id=args.appid)
+    _retrieve_main_app_info(args=args, app=app, app_list=app_list)
 
-    results.format_steam_info(app)
+    results = Results(app=app, max_chars=79)
+    results.format_steam_info()
+
     if args.description:
-        results.format_description(app)
+        results.format_description()
 
+    # If app has an ID, we have managed to find it in Steam
     if app.appID:
         if args.scores:
-            print("Scraping reviews...")
-            app.scrape_app_page()
-            results.format_steam_website_info(app)
-
+            _add_scores_to_app(app=app, results=results)
         if args.historical_low:
-            print("Leafing through history books...")
-            app.extract_historical_low(args.region)
-            results.format_historical_low(app)
-
+            _add_historical_low(app=app, results=results)
         results.print_results()
-
     else:
         print("Application was not found. Is the supplied information correct?")
 
@@ -77,3 +62,57 @@ def _create_parser(config: Config) -> ArgumentParser:
                         help=config.get_value('HelpText', 'historical_help'))
 
     return parser
+
+
+def _retrieve_title() -> str:
+    """ Gets title from the user's input """
+
+    app_title = None
+    while not app_title:
+        # Shell eats up special characters such as ', &, etc.
+        app_title = input("Enter title: ").strip()
+
+    return app_title
+
+
+def _retrieve_main_app_info(args: argparse.Namespace, app: SteamApp, app_list):
+    """ 
+    Find and update SteamApp object with info about application
+     
+    :param args: argument object that has user entered args.
+    :param app: SteamApp that holds information about a particular app.
+    :param app_list: Steam's endpoint that has JSON of all the Steam apps.
+    """
+
+    # Title and id are required, but mutually exclusive
+    if args.title:
+        app_title = _retrieve_title()
+        app.find_app(origin=app_list, region=args.region, title=app_title)
+    else:
+        print("Gathering price information...")
+        app.find_app(origin=app_list, region=args.region, app_id=args.appid)
+
+
+def _add_scores_to_app(app: SteamApp, results: Results):
+    """
+    Add review scores to a given SteamApp and format associated Results object 
+    accordingly.
+    """
+
+    print("Scraping reviews...")
+    app.scrape_app_page()
+    results.format_steam_website_info()
+
+
+def _add_historical_low(app: SteamApp, results: Results):
+    """
+    Add historical low information to a given SteamApp and format associated 
+    Results object accordingly.
+    """
+
+    print("Leafing through history books...")
+    app.extract_historical_low(args.region)
+    results.format_historical_low()
+
+if __name__ == '__main__':
+    main()

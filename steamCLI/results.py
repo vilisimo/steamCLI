@@ -2,7 +2,8 @@ from steamCLI.steamapp import SteamApp
 
 
 class Results:
-    def __init__(self, result: list=None, max_chars: int=79):
+    def __init__(self, app: SteamApp, result: list=None, max_chars: int=79):
+        self.app = app
         if result is None:
             self.result = []
         else:
@@ -14,79 +15,77 @@ class Results:
         self.steam = None
         self.itad = None
 
-    def format_steam_info(self, app: SteamApp):
+    def format_steam_info(self):
         """
         Formats information that was gathered from Steam API.
 
-        :param app: steam application from which info has to be formatted.
         :return: formatted string.
         """
 
-        rel_date = app.release_date if app.release_date else 'no release date'
-        initial = (round(app.initial_price / 100, 2) if app.initial_price
+        release = (self.app.release_date if self.app.release_date
+                   else 'no release date')
+        initial = (round(self.app.initial_price / 100, 2)
+                   if self.app.initial_price else 'N/A')
+        current = (round(self.app.final_price / 100, 2) if self.app.final_price
                    else 'N/A')
-        current = (round(app.final_price / 100, 2) if app.final_price
-                   else 'N/A')
-        currency = f' {app.currency}' if app.currency else ''
+        currency = f' {self.app.currency}' if self.app.currency else ''
 
         self.steam = list()
-        self.steam.append(f'*** {app.title} ({rel_date}) ***')
-        self.steam.append(f'{current}{currency} ({app.discount}% '
+        self.steam.append(f'*** {self.app.title} ({release}) ***')
+        self.steam.append(f'{current}{currency} ({self.app.discount}% '
                           f'from {initial}{currency})')
-        self.steam.append(f'Metacritic score: {app.metacritic}')
+        self.steam.append(f'Metacritic score: {self.app.metacritic}')
 
-    def format_steam_website_info(self, app: SteamApp):
+    def format_steam_website_info(self):
         """
         Formats information that was gathered from Steam website.
 
-        :param app: steam application from which info has to be formatted.
         :return: formatted string.
         """
 
         self.website = list()
 
-        if app.overall_count:
-            self.website.append(f'{app.overall_count} overall reviews '
-                                f'({app.overall_percent} positive)')
+        if self.app.overall_count:
+            self.website.append(f'{self.app.overall_count} overall reviews '
+                                f'({self.app.overall_percent} positive)')
         else:
             self.website.append("No overall reviews available")
 
         # It makes sense to show absence of recent reviews only if overall
         # reviews are missing as well.
-        if app.overall_count and not app.recent_count:
+        if self.app.overall_count and not self.app.recent_count:
             self.website.append("No recent reviews available")
 
-        if app.recent_count:
-            self.website.append(f'{app.recent_count} recent reviews '
-                                f'({app.recent_percent} positive)')
+        if self.app.recent_count:
+            self.website.append(f'{self.app.recent_count} recent reviews '
+                                f'({self.app.recent_percent} positive)')
 
-    def format_historical_low(self, app: SteamApp):
+    def format_historical_low(self):
         """
         Formats information on historical low prices of the given application.
 
-        :param app: steam application from which info has to be formatted.
         :return: formatted string.
         """
 
-        lowest = f'{app.historical_low:.2f}' if app.historical_low else 'N/A'
-        currency = f' {app.currency}' if app.currency else ''
-        cut = app.historical_cut if app.historical_cut else 'N/A'
-        shop = app.historical_shop if app.historical_shop else 'N/A'
+        lowest = (f'{self.app.historical_low:.2f}' if self.app.historical_low
+                  else 'N/A')
+        currency = f' {self.app.currency}' if self.app.currency else ''
+        cut = self.app.historical_cut if self.app.historical_cut else 'N/A'
+        shop = self.app.historical_shop if self.app.historical_shop else 'N/A'
 
         self.itad = list()
         self.itad.append(f'Historical low: {lowest}{currency} (-{cut}%)')
         self.itad.append(f'Shop: {shop}')
 
-    def format_description(self, app: SteamApp) -> str:
+    def format_description(self) -> str:
         """
         Formats given application's description.
 
-        :param app: steam application from which info has to be formatted.
         :return: formatted string.
         """
 
-        if app.description:
-            self.description = app.description
+        if self.app.description:
+            self.description = self.app.description
         else:
             self.description = 'Short description unavailable'
 
