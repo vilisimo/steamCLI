@@ -30,11 +30,11 @@ enter `borderlands` (title is case-insensitive). Example output:
 `>>> python3 --version` 
 - Clone the project: `>>> git clone git@github.com:vilisimo/steamCLI.git`
 - __(Recommended)__ Ensure `virtualenvwrapper` is installed: `>>> pip list` 
-or `pip list | grep virtualenvwrapper` if you're on OSX / Linux. 
+or `>>> pip list | grep virtualenvwrapper` if you're on OSX / Linux. 
   * If it is not, enter `>>> pip install virtualenvwrapper`.
 - __(Recommended)__ Create virtual environment for the project: 
 `>>> mkvirtualenv -p python3.6 steamCLI`.
-- Install required packages in _requirements.txt_: `pip install -r 
+- Install required packages in _requirements.txt_: `>>> pip install -r 
 requirements.txt`
 - Get an API key for Is There Any Deal (if you want to see the historical 
 low). For that, you need register your app and request an API key. You can do
