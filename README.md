@@ -20,10 +20,6 @@ low). For that, you need register your app and request an API key. You can do
  - Introducing async requests (most likely candidate: do scraping and 
  lowest historical price search at the same time) to reduce waiting.
 
-**Functionality:**
- - Showing whether the game has co-op, multi-player, controller support.
- - Showing whether the user has the game or not.
-
 **Misc**
  - Setting up _setup.py_ so that the steamCLI could be installed through _pip_.
  - Writing up instructions on how to install steamCLI so that it could be 
