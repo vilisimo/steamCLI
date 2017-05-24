@@ -43,7 +43,7 @@ class ConfigTests(unittest.TestCase):
 
         test_path = '/rooty/root/'
         mocked_isfile.return_value = True
-        config = Config(root=test_path)
+        config = Config(root_folder=test_path)
 
         self.assertTrue(config)
         self.assertIn(mock.call(test_path), mocked_isfile.call_args_list)

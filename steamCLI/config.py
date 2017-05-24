@@ -11,14 +11,14 @@ class Config:
     If only get_value() is ever used, class might be an overkill.
     """
 
-    def __init__(self, root: str=ROOT, *args: str):
+    def __init__(self, root_folder: str=ROOT, *args: str):
         """
-        :param root: project root folder.
+        :param root_folder: project root folder.
         :param *args: folders + file name needed to navigate to the .ini file.
         """
 
         self.config = configparser.ConfigParser()
-        self.path = os.path.join(root, *args)
+        self.path = os.path.join(root_folder, *args)
 
         # If there was no config file, config class would be useless.
         if not os.path.isfile(self.path):

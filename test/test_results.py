@@ -59,7 +59,7 @@ class ResultTest(unittest.TestCase):
         self.app.recent_percent = '99%'
         self.results.format_steam_website_info()
 
-        self.assertEqual(expected, self.results.website)
+        self.assertEqual(expected, self.results.site_stats)
 
     def test_app_scores_missing_all_info(self):
         """ Ensures that app scores are reported missing. """
@@ -67,7 +67,7 @@ class ResultTest(unittest.TestCase):
         expected = ["No overall reviews available"]
         self.results.format_steam_website_info()
 
-        self.assertEqual(expected, self.results.website)
+        self.assertEqual(expected, self.results.site_stats)
 
     def test_app_scores_recent_missing(self):
         """ Ensures that recent app scores are reported missing. """
@@ -79,7 +79,7 @@ class ResultTest(unittest.TestCase):
         self.app.overall_percent = '99%'
         self.results.format_steam_website_info()
 
-        self.assertEqual(expected, self.results.website)
+        self.assertEqual(expected, self.results.site_stats)
 
     def test_app_scores_overall_missing(self):
         """ Ensures that overall app scores are reported missing. """
@@ -91,7 +91,7 @@ class ResultTest(unittest.TestCase):
         self.app.recent_percent = '99%'
         self.results.format_steam_website_info()
 
-        self.assertEqual(expected, self.results.website)
+        self.assertEqual(expected, self.results.site_stats)
 
     def test_format_historical_low_valid_inputs(self):
         """

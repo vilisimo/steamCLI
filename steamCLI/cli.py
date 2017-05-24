@@ -8,7 +8,7 @@ from steamCLI.results import Results
 
 def main():
     config = Config('steamCLI', 'resources.ini')
-    app_list = config.get_value('SteamAPIs', 'applist')
+    app_list = config.get_value(section='SteamAPIs', key='applist')
     parser = _create_parser(config)
     args = parser.parse_args()
 

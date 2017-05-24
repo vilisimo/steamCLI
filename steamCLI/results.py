@@ -11,7 +11,7 @@ class Results:
         self.max_chars = max_chars
 
         self.description = None
-        self.website = None
+        self.site_stats = None
         self.steam = None
         self.itad = None
 
@@ -43,22 +43,22 @@ class Results:
         :return: formatted string.
         """
 
-        self.website = list()
+        self.site_stats = list()
 
         if self.app.overall_count:
-            self.website.append(f'{self.app.overall_count} overall reviews '
-                                f'({self.app.overall_percent} positive)')
+            self.site_stats.append(f'{self.app.overall_count} overall reviews '
+                                   f'({self.app.overall_percent} positive)')
         else:
-            self.website.append("No overall reviews available")
+            self.site_stats.append("No overall reviews available")
 
         # It makes sense to show absence of recent reviews only if overall
         # reviews are missing as well.
         if self.app.overall_count and not self.app.recent_count:
-            self.website.append("No recent reviews available")
+            self.site_stats.append("No recent reviews available")
 
         if self.app.recent_count:
-            self.website.append(f'{self.app.recent_count} recent reviews '
-                                f'({self.app.recent_percent} positive)')
+            self.site_stats.append(f'{self.app.recent_count} recent reviews '
+                                   f'({self.app.recent_percent} positive)')
 
     def format_historical_low(self):
         """
@@ -95,8 +95,8 @@ class Results:
         print('\n', ''.center(self.max_chars, '*') + '\n')
         print(self._center_text(self.steam))
 
-        if self.website:
-            print('\n', self._center_text(self.website))
+        if self.site_stats:
+            print('\n', self._center_text(self.site_stats))
         if self.itad:
             print('\n', self._center_text(self.itad))
         if self.description:
