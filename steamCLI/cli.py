@@ -26,7 +26,7 @@ def main():
         if args.scores:
             _add_scores_to_app(app=app, results=results)
         if args.historical_low:
-            _add_historical_low(app=app, results=results)
+            _add_historical_low(args=args, app=app, results=results)
         results.print_results()
     else:
         print("Application was not found. Is the supplied information correct?")
@@ -104,7 +104,7 @@ def _add_scores_to_app(app: SteamApp, results: Results):
     results.format_steam_website_info()
 
 
-def _add_historical_low(app: SteamApp, results: Results):
+def _add_historical_low(args: argparse.Namespace, app: SteamApp, results: Results):
     """
     Add historical low information to a given SteamApp and format associated 
     Results object accordingly.
