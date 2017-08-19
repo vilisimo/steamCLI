@@ -6,7 +6,7 @@ import unittest
 from argparse import ArgumentError
 from unittest import mock
 
-from steamCLI.cli import _create_parser
+from steamCLI.console import _create_parser
 
 
 class ParserTests(unittest.TestCase):
@@ -65,8 +65,7 @@ class ParserTests(unittest.TestCase):
     def test_should_not_allow_region_not_in_the_list(self):
         """ Make sure that entering invalid region raises an error. """
 
-        with mock.patch('steamCLI.cli.ArgumentParser._print_message',
-                        mock.MagicMock()):
+        with mock.patch('steamCLI.console.ArgumentParser._print_message', mock.MagicMock()):
             with self.assertRaises((ArgumentError, SystemExit)):
                 region = 'as'
                 self.parser.parse_args(['-t', '-r', region])
