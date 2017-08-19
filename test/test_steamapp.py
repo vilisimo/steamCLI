@@ -28,7 +28,6 @@ class SteamAppConstructionTests(unittest.TestCase):
             SteamApp(config=None)
 
 
-
 class SteamAppFetchTextAssignIDTests(unittest.TestCase):
     """ Tests related to functionality necessary to find app id. """
 
@@ -305,10 +304,10 @@ class SteamAppAssignInfoTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.id = 1
+        self.app_id = 1
         self.url = 'http://api.example.com/test/'
         self.app = SteamApp(config="stubConfig")
-        self.app.appID = self.id
+        self.app.appID = self.app_id
 
         self.response = {
             'name': 'Test',

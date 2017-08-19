@@ -1,8 +1,8 @@
 # To run single test module:
 # >>> python -m unittest test.test_some_module
 
+import os
 import unittest
-
 from unittest import mock
 
 from steamCLI.config import Config
@@ -63,7 +63,8 @@ class ConfigTests(unittest.TestCase):
         Note: test depends on external file. Would break if the file changes.
         """
 
-        config = Config('steamCLI', 'resources.ini')
+        dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'steamCLI')
+        config = Config(dir_path, 'resources.ini')
 
         self.assertEqual(
             config.get_value('SteamAPIs', 'applist'),
