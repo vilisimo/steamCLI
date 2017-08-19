@@ -1,8 +1,8 @@
-import requests
 import json
-
-from bs4 import BeautifulSoup
 from typing import List, Union
+
+import requests
+from bs4 import BeautifulSoup
 
 from steamCLI.utils import sanitize_title, calculate_discount
 

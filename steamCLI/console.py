@@ -2,8 +2,8 @@ import argparse
 from argparse import ArgumentParser
 
 from steamCLI.config import Config
-from steamCLI.steamapp import SteamApp
 from steamCLI.results import Results
+from steamCLI.steamapp import SteamApp
 
 
 def main():

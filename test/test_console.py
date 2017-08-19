@@ -2,7 +2,6 @@
 # >>> python -m unittest test.test_some_module
 
 import unittest
-
 from argparse import ArgumentError
 from unittest import mock
 

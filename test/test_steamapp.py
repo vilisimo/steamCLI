@@ -2,12 +2,12 @@
 # >>> python -m unittest test.test_some_module
 
 import unittest
-
 from unittest import mock
+
 from requests import HTTPError
 
-from steamCLI.steamapp import SteamApp
 from steamCLI.config import Config
+from steamCLI.steamapp import SteamApp
 
 # Stubs that tests can use.
 RESOURCE = '{"applist": {"apps": {"app": [{"appid": 8,"name": "winui2"}]}}}'
