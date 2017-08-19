@@ -1,8 +1,8 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='steamCLI',
-    version='0.0.1',
+    version='1.0.1',
     packages=['test', 'steamCLI'],
     url='https://github.com/vilisimo/steamCLI',
     license='MIT License',
@@ -13,5 +13,10 @@ setup(
                      'to check prices of  apps on Steam and compare them with '
                      'historical lows. For that, https://isthereanydeal.com/ '
                      'is used. To see a more in-depth and up-to-date description, '
-                     'please see the provided GitHub page.'
+                     'please see the provided GitHub page.',
+    entry_points={
+        'console_scripts': [
+            'steamCLI = steamCLI.__main__:main'
+        ]
+    }
 )
