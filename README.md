@@ -1,11 +1,42 @@
 ## About
-steamCLI is a command line tool that allows a user to search steam 
+`steamCLI` is a command line tool that allows a user to search steam 
 for information about the game/app straight from the command line. 
 It supports overall and recent ratings, current prices on Steam, historical 
 low price, different currencies and regions.
 
+## Installation
+To use `steamCLI`, you need to have [Python 3.6](https://www.python.org/downloads/). 
+To check your version, issue the following command in the shell:
+~~~
+python3 --version
+~~~
+Once you have correct version of Python installed, enter the following command:
+~~~
+pip install steamcli
+~~~ 
+This will download and install `steamCLI` and its dependencies. 
+
+At this point, you can already use the app. However, you will not be able to access
+historically low prices. For this, you need to get an API key for Is There Any Deal 
+You will need  to register your app (`steamCLI`) and request an API  key. You can do 
+it [here](https://isthereanydeal.com/apps/new/). Additional documentation is 
+available [here](http://docs.itad.apiary.io/#introduction/your-apps).
+
+Export the key you have been given as environment variable:
+~~~
+export steamCLI=[your_API_key]
+~~~
+You can also set environment variable permanently: 
+- [Mac](https://stackoverflow.com/questions/22502759/mac-os-x-10-9-setting-permanent-environment-variables)
+- [Ubuntu](https://stackoverflow.com/questions/13046624/how-to-permanently-export-a-variable-in-linux)
+
+Now you should be able to fully use the app.
+
 ## Usage
-You can see what you can do with the script by calling `>>> python steamCLI/console.py -h`.
+You can see what you can do with the script by calling:
+~~~
+steamcli -h
+~~~
 Nevertheless, it currently has these options:
 
     -h, --help            show this help message and exit
@@ -18,21 +49,24 @@ Nevertheless, it currently has these options:
     -l, --historical_low  include to see historical low price
 
 Hence, if you wanted to find out release date, price, discount and metacritic 
-reviews for Borderlands, you'd simply have to call `>>> python main.py -t` and 
-enter `borderlands` (title is case-insensitive). Example output:
+reviews for Borderlands, you'd simply have to call
+~~~
+steamcli -t
+~~~
+and enter `borderlands` (title is case-insensitive). Example output:
 
                        *** Borderlands (26 Oct, 2009) ***                      
                           9.99 GBP (0% from 9.99 GBP)                          
                               Metacritic score: 81 
                               
 ## Tests
-If you have completed `Installation` steps, you can run the tests from the Terminal. 
+If you have cloned the repository, you can run the tests from the Terminal. 
 To do so, navigate to the root folder of `steamCLI` app and issue the following command:
 ~~~
 python -m unittest discover
 ~~~ 
 
-## Installation
+## Cloning the and Setting Up the Project
 1. Ensure you have [Python 3.6](https://www.python.org/downloads/) installed:
 ~~~ 
 python3 --version
@@ -69,5 +103,10 @@ add2virtualenv /path/to/root/folder
 low). For that, you need register your app and request an API key. You can do
  it [here](https://isthereanydeal.com/apps/new/). Additional documentation 
  available [here](http://docs.itad.apiary.io/#introduction/your-apps).
-8. Open up [resources.ini](../../tree/master/steamCLI/resources.ini), change 
-  _api_key_ in **_IsThereAnyDealAPI_** section to your API key. 
+8. Export the key as environment variable:
+~~~
+export steamCLI=[your_API_key]
+~~~
+  * You can also set environment variable permanently: 
+    - [Mac](https://stackoverflow.com/questions/22502759/mac-os-x-10-9-setting-permanent-environment-variables)
+    - [Ubuntu](https://stackoverflow.com/questions/13046624/how-to-permanently-export-a-variable-in-linux)
