@@ -1,35 +1,44 @@
 import argparse
 from argparse import ArgumentParser
 
+from steamCLI.colors import error
 from steamCLI.config import Config
 from steamCLI.results import Results
 from steamCLI.steamapp import SteamApp
 
 
 def main():
-    config = Config('steamCLI', 'resources.ini')
-    app_list = config.get_value(section='SteamAPIs', key='applist')
-    parser = _create_parser(config)
-    args = parser.parse_args()
+    try:
+        config = Config('steamCLI', 'resources.ini')
+        app_list = config.get_value(section='SteamAPIs', key='applist')
+        parser = _create_parser(config)
+        args = parser.parse_args()
 
-    app = SteamApp(config=config)
-    _retrieve_main_app_info(args=args, app=app, app_list=app_list)
+        app = SteamApp(config=config)
+        _retrieve_main_app_info(args=args, app=app, app_list=app_list)
 
-    results = Results(app=app, max_chars=79)
-    results.format_steam_info()
+        results = Results(app=app, max_chars=79)
+        results.format_steam_info()
 
-    if args.description:
-        results.format_description()
+        if args.description:
+            results.format_description()
 
-    # If app has an ID, we have managed to find it in Steam
-    if app.appID:
-        if args.scores:
-            _add_scores_to_app(app=app, results=results)
-        if args.historical_low:
-            _add_historical_low(args=args, app=app, results=results)
-        results.print_results()
-    else:
-        print("Application was not found. Is the supplied information correct?")
+        # If app has an ID, we have managed to find it in Steam
+        if app.appID:
+            if args.scores:
+                _add_scores_to_app(app=app, results=results)
+            if args.historical_low:
+                try:
+                    _add_historical_low(args=args, app=app, results=results)
+                except KeyError:
+                    error("Environment variable with API key was not found. Results are shown "
+                          "WITHOUT the historical low price data. To fix this, please set an "
+                          "environment key: \n\n>>> export steamCLI=[your_key]")
+            results.print_results()
+        else:
+            print("Application was not found. Is the supplied information correct?")
+    except KeyboardInterrupt:
+        print("\nInterrupted by a user. Exiting the program.")
 
 
 def _create_parser(config: Config) -> ArgumentParser:

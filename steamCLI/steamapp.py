@@ -330,12 +330,19 @@ class SteamApp:
             region = self.config.get_value('SteamRegions', 'default')
 
         env_var = self.config.get_value('IsThereAnyDealAPI', 'env_var')
-        api_key = os.environ[env_var]
+        api_key = self._retrieve_api_key(env_var)
         app_url = self.config.get_value('IsThereAnyDealAPI', 'app_url')
         url = (app_url.replace('[region]', region)
                       .replace('[key]', api_key)
                       .replace('[title]', sanitized_title))
         return url
+
+    @staticmethod
+    def _retrieve_api_key(env_var):
+        try:
+            return os.environ[env_var]
+        except KeyError:
+            raise KeyError("Environment variable not found")
 
     @staticmethod
     def _get_value(json_data: dict, key: str) -> str:

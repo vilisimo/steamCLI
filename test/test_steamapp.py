@@ -618,42 +618,51 @@ class IsThereAnyDealAPITests(unittest.TestCase):
         self.config = mock.Mock(Config)
         self.app = SteamApp(self.config)
 
-    def test_should_create_url_with_default_region_with_missing(self):
+    @mock.patch.object(SteamApp, '_retrieve_api_key')
+    def test_should_create_url_with_default_region_with_missing(self, mock_env):
         region = 'uk'
-        mock_key = 'mock_key'
         mock_url = 'www.example.com/mock/url/[region]'
-        mock_url_region = mock_url.replace('[region]', region)
-        self.config.get_value.side_effect = [region, mock_key, mock_url]
+        mock_env.return_value = 'placeholder'
+        expected_url = mock_url.replace('[region]', region)
+        self.config.get_value.side_effect = [region, 'steamCLI', mock_url]
 
         url = self.app._construct_itad_url("test", region='')
 
-        self.assertEqual(mock_url_region, url)
+        self.assertEqual(expected_url, url)
         self.config.get_value.assert_called()
         self.assertEqual(self.config.get_value.call_count, 3)
 
-    def test_should_construct_proper_url_with_given_title(self):
+    def test_should_raise_exception_upon_missing_key(self):
+        with self.assertRaises(KeyError):
+            self.app._retrieve_api_key("nonexistent")
+
+    @mock.patch.object(SteamApp, '_retrieve_api_key')
+    def test_should_construct_proper_url_with_given_title(self, mock_env):
         title = "test_title"
+        mock_env.return_value = 'placeholder'
         mock_url = 'www.example.com/mock/url/[title]'
-        mock_url_title = mock_url.replace('[title]', title)
+        expected_url = mock_url.replace('[title]', title)
         self.config.get_value.side_effect = ['mock_key', mock_url]
 
         url = self.app._construct_itad_url(title, region="eu")
 
-        self.assertEqual(mock_url_title, url)
+        self.assertEqual(expected_url, url)
         self.config.get_value.assert_called()
         self.assertEqual(self.config.get_value.call_count, 2)
 
     # @mock.patch('steamCLI.steamapp.Config', autospec=True)  # left as example
     # def test_should_construct_url_with_given_key(self, mocked_config):
-    def test_should_construct_url_with_given_key(self):
+    @mock.patch.object(SteamApp, '_retrieve_api_key')
+    def test_should_construct_url_with_given_key(self, mock_env):
         mock_key = 'mock_key'
         mock_url = 'www.example.com/mock/url/[key]'
-        mock_url_title = mock_url.replace('[key]', mock_key)
-        self.config.get_value.side_effect = [mock_key, mock_url]
+        mock_env.return_value = mock_key
+        expected_url = mock_url.replace('[key]', mock_key)
+        self.config.get_value.side_effect = ['steamCLI', mock_url]
 
         url = self.app._construct_itad_url("placeholder", region="eu")
 
-        self.assertEqual(mock_url_title, url)
+        self.assertEqual(expected_url, url)
         self.assertEqual(self.config.get_value.call_count, 2)
     
     def test_should_not_extract_historical_low_with_no_title(self):
