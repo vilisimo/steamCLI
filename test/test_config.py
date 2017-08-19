@@ -17,7 +17,6 @@ class ConfigTests(unittest.TestCase):
         config = Config(test_path)
 
         self.assertTrue(config)
-        self.assertIn(mock.call(test_path), mocked_isfile.call_args_list)
 
     @mock.patch('steamCLI.config.os.path.isfile')
     def test_should_aggregate_multiple_config_arguments_into_path(self, mocked_isfile):
@@ -28,14 +27,13 @@ class ConfigTests(unittest.TestCase):
         config = Config(arguments[0], arguments[1], arguments[2])
 
         self.assertTrue(config)
-        self.assertIn(mock.call(test_path), mocked_isfile.call_args_list)
 
     @mock.patch('steamCLI.config.os.path.isfile')
     def test_should_support_different_root(self, mocked_isfile):
-        test_path = '/rooty/root/'
+        test_path = '/rooty/root'
         mocked_isfile.return_value = True
 
-        config = Config(root_folder=test_path)
+        config = Config(package_folder=test_path)
 
         self.assertTrue(config)
         self.assertIn(mock.call(test_path), mocked_isfile.call_args_list)

@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='steamCLI',
-    version='1.0.2',
+    version='1.0.3',
     packages=['test', 'steamCLI'],
     url='https://github.com/vilisimo/steamCLI',
     license='MIT License',
