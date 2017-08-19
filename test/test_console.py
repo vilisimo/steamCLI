@@ -32,63 +32,42 @@ class ParserTests(unittest.TestCase):
 
         self.parser = _create_parser(mock_config)
 
-    def test_should_create_parser(self):
-        """ Ensure the function creates parser object. """
-
+    def test_parser_created(self):
         self.assertTrue(self.parser)
 
-    def test_default_region_should_be_set_by_parser(self):
-        """ Ensure default region is the one that is specified. """
-
+    def test_default_region_set(self):
         args = self.parser.parse_args(['-t'])
-        region = args.region
 
-        self.assertEqual(self.default_region, region)
+        self.assertEqual(self.default_region, args.region)
 
     def test_should_assign_region(self):
-        """ Ensures region can be assigned. """
+        args = self.parser.parse_args(['-tr', 'au'])
 
-        region = 'au'
-        args = self.parser.parse_args(['-tr', region])
-
-        self.assertEqual(region, args.region)
+        self.assertEqual('au', args.region)
 
     def test_region_should_be_case_insensitive(self):
-        """ Ensures region is case insensitive. """
+        args = self.parser.parse_args(['-tr', 'AU'])
 
-        region = 'AU'
-        args = self.parser.parse_args(['-tr', region])
-
-        self.assertEqual(region.lower(), args.region)
+        self.assertEqual('au', args.region)
 
     def test_should_not_allow_region_not_in_the_list(self):
-        """ Make sure that entering invalid region raises an error. """
-
         with mock.patch('steamCLI.console.ArgumentParser._print_message', mock.MagicMock()):
             with self.assertRaises((ArgumentError, SystemExit)):
-                region = 'as'
-                self.parser.parse_args(['-t', '-r', region])
+                self.parser.parse_args(['-t', '-r', 'as'])
 
     def test_should_store_title_flag(self):
-        """ Ensures true/false is stored when -t is passed in. """
-
         args = self.parser.parse_args(['-t'])
         self.assertTrue(args.title)
 
         args = self.parser.parse_args(['-id', '1'])
         self.assertFalse(args.title)
 
-    def test_should_assign_id(self):
-        """ Ensure ID can be assigned when -id flag is used. """
+    def test_should_assign_id_with_id_flag(self):
+        args = self.parser.parse_args(['-id', "1"])
 
-        app_id = 1
-        args = self.parser.parse_args(['-id', str(app_id)])
-
-        self.assertEqual(app_id, args.appid)
+        self.assertEqual(1, args.appid)
 
     def test_should_store_description_flag(self):
-        """ Ensure description is set either to true or false if -d is used. """
-
         args = self.parser.parse_args(['-td'])
         self.assertTrue(args.description)
 
@@ -96,8 +75,6 @@ class ParserTests(unittest.TestCase):
         self.assertFalse(args.description)
 
     def test_should_store_review_scores_flag(self):
-        """ Ensure description is set either to true or false if -d is used. """
-
         args = self.parser.parse_args(['-ts'])
         self.assertTrue(args.scores)
 
@@ -105,8 +82,6 @@ class ParserTests(unittest.TestCase):
         self.assertFalse(args.scores)
 
     def test_should_store_historical_low_flag(self):
-        """ Ensure description is set either to true or false if -d is used. """
-
         args = self.parser.parse_args(['-tl'])
         self.assertTrue(args.historical_low)
 

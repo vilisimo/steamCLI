@@ -23,7 +23,14 @@ enter `borderlands` (title is case-insensitive). Example output:
 
                        *** Borderlands (26 Oct, 2009) ***                      
                           9.99 GBP (0% from 9.99 GBP)                          
-                              Metacritic score: 81                             
+                              Metacritic score: 81 
+                              
+## Tests
+If you have completed `Installation` steps, you can run the tests from the Terminal. 
+To do so, navigate to the root folder of `steamCLI` app and issue the following command:
+~~~
+python -m unittest discover
+~~~ 
 
 ## Installation
 1. Ensure you have [Python 3.6](https://www.python.org/downloads/) installed:
