@@ -1,6 +1,7 @@
 import json
 from typing import List, Union
 
+import os
 import requests
 from bs4 import BeautifulSoup
 
@@ -328,7 +329,8 @@ class SteamApp:
         if not region:
             region = self.config.get_value('SteamRegions', 'default')
 
-        api_key = self.config.get_value('IsThereAnyDealAPI', 'api_key')
+        env_var = self.config.get_value('IsThereAnyDealAPI', 'env_var')
+        api_key = os.environ[env_var]
         app_url = self.config.get_value('IsThereAnyDealAPI', 'app_url')
         url = (app_url.replace('[region]', region)
                       .replace('[key]', api_key)
