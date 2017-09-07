@@ -1,26 +1,29 @@
 ## About
-`steamCLI` is a command line tool that allows a user to search steam 
-for information about the game/app straight from the command line. 
-It supports overall and recent ratings, current prices on Steam, historical 
-low price, different currencies and regions.
+`steamCLI` is a command line tool that allows you to search Steam for 
+information about the game/app straight from the command line. It supports 
+overall and recent ratings, current prices on Steam, historical low price, 
+different currencies and regions.
 
 ## Installation
-To use `steamCLI`, you need to have [Python 3.6](https://www.python.org/downloads/). 
-To check your version, issue the following command in the shell:
+To use `steamCLI`, you need to have [Python 3.6+](https://www.python.org/downloads/). 
+To check your version, issue the following command in the terminal:
 ~~~
 python3 --version
 ~~~
 Once you have correct version of Python installed, enter the following command:
 ~~~
-pip install steamcli
+pip3.6 install steamcli
 ~~~ 
-This will download and install `steamCLI` and its dependencies. 
+This will download and install `steamCLI` and its dependencies for Python 3.6. 
+If you use `pip install ...`, however, it will most likely be installed for 
+Python 2.7, since most major OSes rely on it in one way or the other. The app
+will not work on 2.7.
 
-At this point, you can already use the app. However, you will not be able to access
-historically low prices. For this, you need to get an API key for Is There Any Deal 
-You will need  to register your app (`steamCLI`) and request an API  key. You can do 
-it [here](https://isthereanydeal.com/apps/new/). Additional documentation is 
-available [here](http://docs.itad.apiary.io/#introduction/your-apps).
+Once `pip` installs the app, you can already use it. However, you will not be 
+able to access historically low prices. For this, you need to get an API key 
+for Is There Any Deal. You will need  to register your app (`steamCLI`) and 
+request an API  key. You can do it [here](https://isthereanydeal.com/apps/new/). 
+Additional documentation is available [here](http://docs.itad.apiary.io/#introduction/your-apps).
 
 Export the key you have been given as environment variable:
 ~~~
