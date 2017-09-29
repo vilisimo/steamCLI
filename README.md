@@ -20,7 +20,7 @@ Python 2.7, since most major OSes rely on it in one way or the other. The app
 will not work on 2.7.
 
 Once `pip` installs the app, you can already use it. However, you will not be 
-able to access historically low prices. For this, you need to get an API key 
+able to access historical data (such as lowest prices). First, you need to get an API key 
 for Is There Any Deal. You will need  to register your app (`steamCLI`) and 
 request an API  key. You can do it [here](https://isthereanydeal.com/apps/new/). 
 Additional documentation is available [here](http://docs.itad.apiary.io/#introduction/your-apps).
