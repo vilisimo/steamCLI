@@ -48,7 +48,7 @@ Nevertheless, it currently has these options:
     -d, --description     include to see the app description
     -s, --scores          include to see user review scores
     -r val, --region val  which region the price should be shown for Available
-                        values: au, br, ca, cn, eu1, eu2, ru, tr, uk, us
+                          values: au, br, ca, cn, eu1, eu2, ru, tr, uk, us
     -l, --historical_low  include to see historical low price
 
 Hence, if you wanted to find out release date, price, discount and metacritic 
