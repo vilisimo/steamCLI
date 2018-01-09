@@ -1,7 +1,7 @@
 ## About
-`steamCLI` is a command line tool that allows you to search Steam for 
+`steamCLI` is a command line tool that allows searching Steam for price 
 information about the game/app straight from the command line. It supports 
-overall and recent ratings, current prices on Steam, historical low price, 
+recent and overall ratings, current prices on Steam, historical low price, 
 different currencies and regions.
 
 ## Installation
@@ -10,7 +10,7 @@ To check your version, issue the following command in the terminal:
 ~~~
 python3 --version
 ~~~
-Once you have correct version of Python installed, enter the following command:
+Once you have a correct version of Python installed, enter the following command:
 ~~~
 pip3.6 install steamcli
 ~~~ 
@@ -20,9 +20,9 @@ Python 2.7, since most major OSes rely on it in one way or the other. The app
 will not work on 2.7.
 
 Once `pip` installs the app, you can already use it. However, you will not be 
-able to access historical data (such as lowest prices). First, you need to get an API key 
-for Is There Any Deal. You will need  to register your app (`steamCLI`) and 
-request an API  key. You can do it [here](https://isthereanydeal.com/apps/new/). 
+able to access historical data (such as lowest prices). First, you need to get an API 
+key for [Is There Any Deal](https://isthereanydeal.com). You will need  to register 
+your app (`steamCLI`) and request an API key. You can do it [here](https://isthereanydeal.com/apps/new/). 
 Additional documentation is available [here](http://docs.itad.apiary.io/#introduction/your-apps).
 
 Export the key you have been given as environment variable:
@@ -33,23 +33,23 @@ You can also set environment variable permanently:
 - [Mac](https://stackoverflow.com/questions/22502759/mac-os-x-10-9-setting-permanent-environment-variables)
 - [Ubuntu](https://stackoverflow.com/questions/13046624/how-to-permanently-export-a-variable-in-linux)
 
-Now you should be able to fully use the app.
+Now you should be able to use the full capacities of the app.
 
 ## Usage
 You can see what you can do with the script by calling:
 ~~~
 steamcli -h
 ~~~
-Nevertheless, it currently has these options:
+It currently has these options:
 
-    -h, --help            show this help message and exit
-    -t, --title           title of a game or an app on Steam
-    -id val, --appid val  id of a game or an app on Steam
-    -d, --description     include to see the app description
-    -s, --scores          include to see user review scores
-    -r val, --region val  which region the price should be shown for Available
-                          values: au, br, ca, cn, eu1, eu2, ru, tr, uk, us
-    -l, --historical_low  include to see historical low price
+    -h,      --help            show this help message and exit
+    -t,      --title           title of a game or an app on Steam
+    -id val, --appid val       id of a game or an app on Steam
+    -d,      --description     include to see the app description
+    -s,      --scores          include to see user review scores
+    -r val,  --region val      which region the price should be shown for Available
+                               values: au, br, ca, cn, eu1, eu2, ru, tr, uk, us
+    -l,      --historical_low  include to see historical low price
 
 Hence, if you wanted to find out release date, price, discount and metacritic 
 reviews for Borderlands, you'd simply have to call
@@ -70,7 +70,7 @@ python -m unittest discover
 ~~~ 
 
 ## Cloning the and Setting Up the Project
-1. Ensure you have [Python 3.6](https://www.python.org/downloads/) installed:
+1. Ensure you have [Python 3.6+](https://www.python.org/downloads/) installed:
 ~~~ 
 python3 --version
 ~~~ 
@@ -102,10 +102,10 @@ PYTHONPATH=$PYTHONPATH:/path/to/root/folder
 ~~~
 add2virtualenv /path/to/root/folder
 ~~~
-7. Get an API key for Is There Any Deal (if you want to see the historical 
-low). For that, you need register your app and request an API key. You can do
- it [here](https://isthereanydeal.com/apps/new/). Additional documentation 
- available [here](http://docs.itad.apiary.io/#introduction/your-apps).
+7. Get an API key for [Is There Any Deal](https://isthereanydeal.com) (if you want 
+to see the historical low price). For that, you need register your app and request 
+an API key. You can do it [here](https://isthereanydeal.com/apps/new/). Additional 
+documentation available [here](http://docs.itad.apiary.io/#introduction/your-apps).
 8. Export the key as environment variable:
 ~~~
 export steamCLI=[your_API_key]
